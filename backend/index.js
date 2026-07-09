@@ -5,8 +5,8 @@ const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
-const db = require('./db');
 require('dotenv').config();
+const db = require('./db');
 
 const app = express();
 const port = process.env.PORT || 5000;
