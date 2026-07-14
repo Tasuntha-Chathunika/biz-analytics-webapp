@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Bar } from 'react-chartjs-2';
 
 const TrendChart = ({ data }) => {
@@ -31,7 +31,7 @@ const TrendChart = ({ data }) => {
       },
       {
         label: 'Target',
-        data: revenues.map(v => v * (0.7 + Math.random() * 0.5)),
+        data: revenues.map((v, i) => v * (0.7 + Math.abs(Math.sin(i)) * 0.5)),
         backgroundColor: '#7fb5d5',
         hoverBackgroundColor: '#6da8cc',
         borderRadius: 6,
@@ -41,7 +41,7 @@ const TrendChart = ({ data }) => {
       },
       {
         label: 'Previous',
-        data: revenues.map(v => v * (0.4 + Math.random() * 0.4)),
+        data: revenues.map((v, i) => v * (0.4 + Math.abs(Math.cos(i)) * 0.4)),
         backgroundColor: '#c4dfe6',
         hoverBackgroundColor: '#b0d4de',
         borderRadius: 6,

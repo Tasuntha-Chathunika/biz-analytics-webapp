@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const SettingsPage = ({ user, onLogout }) => {
   const [darkMode, setDarkMode] = useState(false);
