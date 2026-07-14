@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSales, deleteSale, clearSales } from '../api/api';
 
 const RecordsTable = ({ onDataChanged, userRole }) => {
@@ -13,7 +13,7 @@ const RecordsTable = ({ onDataChanged, userRole }) => {
   const [deletingId, setDeletingId] = useState(null);
   const [clearing, setClearing] = useState(false);
 
-  const fetchRecords = async (targetPage, searchTerm) => {
+  const fetchRecords = useCallback(async (targetPage, searchTerm) => {
     try {
       setLoading(true);
       const response = await getSales(targetPage, limit, searchTerm);
@@ -25,7 +25,7 @@ const RecordsTable = ({ onDataChanged, userRole }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [limit]);
 
   // Debounced search trigger
   useEffect(() => {
@@ -34,7 +34,7 @@ const RecordsTable = ({ onDataChanged, userRole }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search, page]);
+  }, [search, page, fetchRecords]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this record?")) return;

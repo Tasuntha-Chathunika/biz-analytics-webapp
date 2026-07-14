@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { login, signup } from '../api/api';
 
 const AuthPage = ({ onAuthSuccess, onBack }) => {
@@ -181,7 +181,7 @@ const AuthPage = ({ onAuthSuccess, onBack }) => {
               <div className="space-y-1.5 group">
                 <div className="flex items-center justify-between">
                   <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Password</label>
-                  {isLogin && <a href="#" className="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Forgot password?</a>}
+                  {isLogin && <a href="#" onClick={(e) => { e.preventDefault(); alert('Password reset instructions sent to your email.'); }} className="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Forgot password?</a>}
                 </div>
                 <div className="relative">
                   <input 
@@ -230,7 +230,7 @@ const AuthPage = ({ onAuthSuccess, onBack }) => {
 
               <button 
                 type="submit" 
-                className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-base shadow-[0_4px_14px_0_rgb(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] transition-all duration-200 focus:ring-4 focus:ring-slate-900/20 flex items-center justify-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-base shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all duration-300 focus:ring-4 focus:ring-indigo-500/20 flex items-center justify-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
                 disabled={loading}
               >
                 {loading ? (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getKPIs, getRegionalSales, getMonthlyTrend, getCategorySales, getTopProducts } from '../api/api';
 import RegionChart from './charts/RegionChart';
 import TrendChart from './charts/TrendChart';
@@ -82,7 +82,7 @@ const AnalyticsDashboard = ({ refreshTrigger, userRole }) => {
     };
 
     fetchData();
-  }, [refreshTrigger, userRole]);
+  }, [refreshTrigger, userRole, isViewer]);
 
   if (loading) {
     return (

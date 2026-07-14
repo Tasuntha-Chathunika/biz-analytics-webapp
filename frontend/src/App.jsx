@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import UploadDashboard from './components/UploadDashboard';
@@ -16,7 +16,6 @@ function App() {
   const [user, setUser] = useState(null);
   const [checkingUser, setCheckingUser] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [checkingData, setCheckingData] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [activeSubTab, setActiveSubTab] = useState('Overview');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -56,8 +55,6 @@ function App() {
         }
       } catch (err) {
         console.error("Failed to check database:", err);
-      } finally {
-        setCheckingData(false);
       }
     };
     checkDb();
@@ -99,7 +96,7 @@ function App() {
       );
     }
     return (
-      <LandingPage onNavigate={(action) => {
+      <LandingPage onNavigate={() => {
         // Here we could pass initial state to AuthPage if we want to differentiate login vs signup
         setShowAuth(true);
       }} />
