@@ -100,54 +100,79 @@ const Sidebar = ({ activeTab, onTabChange, user }) => {
   });
 
   return (
-    <aside className="fixed top-0 left-0 w-[240px] h-screen bg-white/70 backdrop-blur-xl border-r border-slate-200/60 flex flex-col z-[100] max-md:hidden">
+    <aside className="fixed top-0 left-0 w-[260px] h-screen bg-white/60 backdrop-blur-2xl border-r border-slate-200/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] flex flex-col z-[100] max-md:hidden">
       {/* Brand */}
-      <div className="px-5 pt-6 pb-5 flex items-center gap-3 border-b border-slate-100">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-indigo-500/25">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="px-6 pt-8 pb-6 flex items-center gap-3.5 border-b border-slate-200/50">
+        <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shrink-0 shadow-[0_4px_16px_rgba(99,102,241,0.4)] overflow-hidden group cursor-pointer">
+           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+           <svg width="22" height="22" className="group-hover:scale-110 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 3v18h18"></path>
             <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
           </svg>
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-[1.05rem] text-slate-800 leading-tight tracking-tight">InsightEngine</span>
-          <span className="text-[0.7rem] font-semibold text-indigo-600 tracking-wide">PRO PLAN</span>
+          <span className="font-extrabold text-[1.2rem] bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent leading-tight tracking-tight">InsightEngine</span>
+          <span className="text-[0.65rem] font-bold text-indigo-600 tracking-widest uppercase bg-indigo-50 w-fit px-1.5 py-0.5 rounded-md mt-1 border border-indigo-100/50">Pro Plan</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
+      <nav className="flex-1 px-4 py-5 flex flex-col gap-2 overflow-y-auto">
         {filteredItems.map((item) => (
           <button
             key={item.id}
-            className={`flex items-center gap-3 w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border-none cursor-pointer group
+            className={`relative flex items-center gap-3.5 w-full text-left px-3 py-2.5 rounded-2xl text-[0.92rem] font-semibold transition-all duration-300 ease-out cursor-pointer group overflow-hidden
               ${activeTab === item.id
-                ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold shadow-sm ring-1 ring-indigo-100'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                ? 'bg-gradient-to-r from-indigo-50/80 to-purple-50/80 text-indigo-800 shadow-[0_2px_12px_-2px_rgba(99,102,241,0.12)] border border-indigo-100/60'
+                : 'bg-transparent text-slate-500 hover:bg-slate-50/80 border border-transparent hover:border-slate-200/50 hover:text-slate-800 hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]'
               }`}
             onClick={() => onTabChange(item.id)}
           >
-            <span className={`w-5 h-5 shrink-0 transition-all duration-200 ${activeTab === item.id ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
-              {item.icon}
+            {/* Active Glow Indicator */}
+            {activeTab === item.id && (
+               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-7 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-r-full shadow-[0_0_12px_rgba(99,102,241,0.6)]"></div>
+            )}
+            
+            {/* Icon Box */}
+            <div className={`w-9 h-9 shrink-0 flex items-center justify-center rounded-xl transition-all duration-300 ease-out
+              ${activeTab === item.id 
+                ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/40' 
+                : 'bg-slate-100/80 text-slate-400 group-hover:bg-indigo-100/50 group-hover:text-indigo-600 group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-sm'
+              }`}>
+              <div className="w-5 h-5 flex items-center justify-center">
+                {item.icon}
+              </div>
+            </div>
+            
+            <span className={`tracking-wide transition-all duration-300 ${activeTab === item.id ? 'translate-x-0.5' : 'group-hover:translate-x-1'}`}>
+              {item.label}
             </span>
-            {item.label}
           </button>
         ))}
       </nav>
 
       {/* Storage Widget */}
-      <div className="p-4 border-t border-slate-100">
-        <div className="bg-gradient-to-br from-slate-50 to-indigo-50/50 rounded-xl p-4 ring-1 ring-slate-100">
-          <div className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400 mb-2">Storage</div>
-          <div className="h-1.5 bg-slate-200/60 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out" style={{ width: '75%' }}></div>
+      <div className="p-5 border-t border-slate-200/50 bg-slate-50/30">
+        <div className="relative overflow-hidden bg-white/80 backdrop-blur-md rounded-2xl p-4 ring-1 ring-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)] group hover:shadow-md hover:ring-indigo-100 transition-all duration-300">
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors duration-500"></div>
+          
+          <div className="flex justify-between items-center mb-3">
+             <div className="text-[0.7rem] font-bold uppercase tracking-wider text-slate-500">Storage</div>
+             <div className="text-[0.75rem] font-bold text-indigo-600">75%</div>
           </div>
-          <div className="text-xs text-slate-500 mb-3">75% of 100GB used</div>
+          
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1.5 shadow-inner">
+            <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full relative" style={{ width: '75%' }}></div>
+          </div>
+          
+          <div className="text-[0.7rem] text-slate-500 mb-4 font-medium">75 GB of 100 GB used</div>
+          
           <button 
-            className="w-full py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300"
+            className="relative w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden"
             onClick={() => alert('Redirecting to Pro Plan upgrade...')}
           >
             Upgrade Plan
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
           </button>
         </div>
       </div>
