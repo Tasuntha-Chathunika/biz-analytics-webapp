@@ -1,290 +1,217 @@
-import { useState } from 'react';
-import { login, signup } from '../api/api';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-const AuthPage = ({ onAuthSuccess, onBack }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('viewer');
+export default function AuthPage() {
+  const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [showPass, setShowPass] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [company, setCompany] = useState("");
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || (!isLogin && (!name || !role))) {
-      setError("Please fill out all required fields.");
-      return;
-    }
-
     setLoading(true);
-    setError(null);
-
-    try {
-      if (isLogin) {
-        const response = await login(email, password);
-        const { token, user } = response.data;
-        localStorage.setItem('token', token);
-        onAuthSuccess(user);
-      } else {
-        const response = await signup(email, password, name, role);
-        const { token, user } = response.data;
-        localStorage.setItem('token', token);
-        onAuthSuccess(user);
-      }
-    } catch (err) {
-      console.error("Authentication error:", err);
-      setError(err.response?.data?.error || "Authentication failed. Please check credentials.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUseCredentials = (emailVal, passVal) => {
-    setEmail(emailVal);
-    setPassword(passVal);
-    setIsLogin(true);
-    setError(null);
+    setTimeout(() => { setLoading(false); navigate("/dashboard"); }, 1200);
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative overflow-hidden bg-slate-900">
-      {/* Animated Background Mesh Gradient */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-600/40 mix-blend-screen filter blur-[100px] animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-cyan-400/30 mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-purple-600/30 mix-blend-screen filter blur-[130px] animate-blob animation-delay-4000"></div>
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"></div>
-      </div>
+    <div className="min-h-screen mesh-bg flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Blobs */}
+      <div className="absolute top-1/4 left-1/5 w-72 h-72 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+      <div className="absolute bottom-1/4 right-1/5 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #8b5cf6, transparent)" }} />
 
-      {/* Main Glass Card */}
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.12)] z-10 overflow-hidden relative">
-        
-        {/* Left Side: Visual/Branding (Hidden on mobile) */}
-        <div className="hidden lg:flex w-1/2 flex-col justify-between p-16 relative bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-r border-white/10">
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-             <svg className="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-               <defs>
-                 <pattern id="grid" width="8" height="8" patternUnits="userSpaceOnUse">
-                   <path d="M 8 0 L 0 0 0 8" fill="none" stroke="white" strokeWidth="0.5" />
-                 </pattern>
-               </defs>
-               <rect width="100" height="100" fill="url(#grid)" />
-             </svg>
-          </div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 cursor-pointer inline-flex" onClick={onBack}>
-              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-lg group hover:bg-white/30 transition-all">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
-                  <line x1="19" y1="12" x2="5" y2="12"></line>
-                  <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-              </div>
-              <span className="font-bold text-2xl tracking-tight text-white drop-shadow-md">InsightEngine</span>
+      <div className="w-full max-w-md relative">
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2.5 mb-6">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center glow-primary" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+              </svg>
             </div>
-          </div>
-
-          <div className="relative z-10 mt-20 mb-20">
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
-              Empower your<br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-indigo-300 to-purple-300">data journey.</span>
-            </h1>
-            <p className="text-slate-300 text-lg max-w-md leading-relaxed font-light">
-              Experience the next generation of business intelligence. Transform raw data into strategic insights instantly.
-            </p>
-          </div>
-
-          <div className="relative z-10 flex items-center gap-6">
-            <div className="flex -space-x-4">
-              <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-indigo-500"></div>
-              <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-cyan-400"></div>
-              <div className="w-10 h-10 rounded-full border-2 border-slate-900 bg-purple-500"></div>
-            </div>
-            <div className="text-slate-300 text-sm font-medium">
-              Join <span className="text-white font-bold">10,000+</span> teams today.
-            </div>
-          </div>
+            <span className="text-xl font-bold text-white">BizAnalytics</span>
+          </Link>
+          <h2 className="text-2xl font-bold text-white mb-1">
+            {tab === "signin" ? "Welcome back" : "Create your account"}
+          </h2>
+          <p className="text-sm" style={{ color: "#64748b" }}>
+            {tab === "signin" ? "Sign in to your workspace" : "Start your 14-day free trial"}
+          </p>
         </div>
 
-        {/* Right Side: Auth Form */}
-        <div className="w-full lg:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white">
-          
-          {onBack && (
-            <button 
-              onClick={onBack}
-              className="lg:hidden self-start mb-8 text-slate-500 hover:text-slate-900 flex items-center gap-2 font-medium transition-colors bg-slate-100 px-4 py-2 rounded-xl"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-              Back
-            </button>
-          )}
-
-          <div className="max-w-md w-full mx-auto">
-            {/* Tabs */}
-            <div className="flex p-1.5 bg-slate-100/80 rounded-2xl mb-10">
-              <button 
-                onClick={() => { setIsLogin(true); setError(null); }}
-                className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ease-out ${isLogin ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+        {/* Card */}
+        <div className="glass-strong rounded-2xl p-8" style={{ boxShadow: "0 40px 100px rgba(0,0,0,0.5)" }}>
+          {/* Tab toggle */}
+          <div className="flex mb-6 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            {(["signin", "signup"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                style={{
+                  background: tab === t ? "linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2))" : "transparent",
+                  color: tab === t ? "#fff" : "#64748b",
+                  border: tab === t ? "1px solid rgba(99,102,241,0.3)" : "1px solid transparent",
+                }}
               >
-                Sign In
+                {t === "signin" ? "Sign In" : "Create Account"}
               </button>
-              <button 
-                onClick={() => { setIsLogin(false); setError(null); }}
-                className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ease-out ${!isLogin ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+            ))}
+          </div>
+
+          {/* Social auth */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {[
+              {
+                label: "Google",
+                icon: (
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                ),
+              },
+              {
+                label: "GitHub",
+                icon: (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                  </svg>
+                ),
+              },
+            ].map((social) => (
+              <button
+                key={social.label}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-slate-300 transition-all hover:text-white hover:bg-white/5"
+                style={{ border: "1px solid rgba(255,255,255,0.1)" }}
               >
-                Register
+                {social.icon}
+                {social.label}
               </button>
-            </div>
+            ))}
+          </div>
 
-            <div className="mb-8">
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
-                {isLogin ? 'Welcome back' : 'Create an account'}
-              </h2>
-              <p className="text-slate-500 font-medium">
-                {isLogin ? 'Enter your details to access your dashboard.' : 'Start your 14-day free trial today.'}
-              </p>
-            </div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+            <span className="text-xs" style={{ color: "#475569" }}>or continue with email</span>
+            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
-                <div className="space-y-1.5 group">
-                  <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Full Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-5 py-3.5 rounded-xl border border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all bg-slate-50/50 outline-none text-slate-900 font-medium placeholder-slate-400" 
-                    placeholder="John Doe"
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
-              <div className="space-y-1.5 group">
-                <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Email Address</label>
-                <div className="relative">
-                  <input 
-                    type="email" 
-                    className="w-full px-5 py-3.5 pl-12 rounded-xl border border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all bg-slate-50/50 outline-none text-slate-900 font-medium placeholder-slate-400" 
-                    placeholder="name@company.com"
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 group">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Password</label>
-                  {isLogin && <a href="#" onClick={(e) => { e.preventDefault(); alert('Password reset instructions sent to your email.'); }} className="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Forgot password?</a>}
-                </div>
-                <div className="relative">
-                  <input 
-                    type="password" 
-                    className="w-full px-5 py-3.5 pl-12 rounded-xl border border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all bg-slate-50/50 outline-none text-slate-900 font-medium placeholder-slate-400" 
-                    placeholder="••••••••"
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                  </div>
-                </div>
-              </div>
-
-              {!isLogin && (
-                <div className="space-y-1.5 group">
-                  <label className="block text-sm font-bold text-slate-700 group-focus-within:text-indigo-600 transition-colors">Organizational Role</label>
-                  <div className="relative">
-                    <select 
-                      className="w-full px-5 py-3.5 pl-12 rounded-xl border border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all bg-slate-50/50 outline-none text-slate-900 font-medium appearance-none cursor-pointer" 
-                      value={role} 
-                      onChange={(e) => setRole(e.target.value)}
-                    >
-                      <option value="admin">Admin (Full Control)</option>
-                      <option value="manager">Manager (View Data)</option>
-                      <option value="viewer">Viewer (Summary Only)</option>
-                    </select>
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    </div>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-5 pointer-events-none text-slate-500">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3 text-red-600 text-sm font-medium animate-pulse">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                  {error}
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-base shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all duration-300 focus:ring-4 focus:ring-indigo-500/20 flex items-center justify-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
-                disabled={loading}
-              >
-                {loading ? (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                ) : (
-                  <>
-                    {isLogin ? 'Sign In' : 'Create Account'}
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Quick Access Badges */}
-            {isLogin && (
-              <div className="mt-12 text-center">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <div className="h-px bg-slate-200 flex-1"></div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Test Accounts</span>
-                  <div className="h-px bg-slate-200 flex-1"></div>
-                </div>
-                
-                <div className="flex flex-wrap justify-center gap-2">
-                  <button onClick={() => handleUseCredentials('admin@insightengine.com', 'admin123')} className="px-4 py-2 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition-colors">Admin</button>
-                  <button onClick={() => handleUseCredentials('manager@insightengine.com', 'manager123')} className="px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition-colors">Manager</button>
-                  <button onClick={() => handleUseCredentials('viewer@insightengine.com', 'viewer123')} className="px-4 py-2 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition-colors">Viewer</button>
-                </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {tab === "signup" && (
+              <div className="grid grid-cols-2 gap-3">
+                <FloatingInput label="Full Name" value={name} onChange={setName} type="text" required />
+                <FloatingInput label="Company" value={company} onChange={setCompany} type="text" />
               </div>
             )}
-          </div>
+            <FloatingInput label="Email address" value={email} onChange={setEmail} type="email" required />
+            <div className="relative">
+              <FloatingInput label="Password" value={password} onChange={setPassword} type={showPass ? "text" : "password"} required />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                {showPass ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                )}
+              </button>
+            </div>
+
+            {tab === "signin" && (
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="w-4 h-4 rounded"
+                    style={{ accentColor: "#6366f1" }}
+                  />
+                  <span className="text-sm" style={{ color: "#64748b" }}>Remember me</span>
+                </label>
+                <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: "#6366f1" }}>Forgot password?</a>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all hover:scale-[1.02] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 0 20px rgba(99,102,241,0.25)" }}
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                  Authenticating...
+                </>
+              ) : (
+                tab === "signin" ? "Sign In to Dashboard" : "Create Free Account"
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-xs mt-5" style={{ color: "#475569" }}>
+            {tab === "signin" ? "Don't have an account? " : "Already have an account? "}
+            <button onClick={() => setTab(tab === "signin" ? "signup" : "signin")} className="font-medium transition-colors hover:text-white" style={{ color: "#6366f1" }}>
+              {tab === "signin" ? "Sign up free" : "Sign in"}
+            </button>
+          </p>
         </div>
+
+        <p className="text-center text-xs mt-6" style={{ color: "#334155" }}>
+          By continuing, you agree to our{" "}
+          <a href="#" className="underline hover:text-slate-400">Terms of Service</a> and{" "}
+          <a href="#" className="underline hover:text-slate-400">Privacy Policy</a>
+        </p>
       </div>
-      
-      {/* Global CSS for animations just for this component */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 10s infinite alternate;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}} />
     </div>
   );
-};
+}
 
-export default AuthPage;
-
+function FloatingInput({ label, value, onChange, type, required }: {
+  label: string; value: string; onChange: (v: string) => void; type: string; required?: boolean;
+}) {
+  const [focused, setFocused] = useState(false);
+  const active = focused || value.length > 0;
+  return (
+    <div className="relative">
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        className="w-full px-4 pt-5 pb-2 rounded-xl text-sm text-white outline-none transition-all peer"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: focused ? "1px solid rgba(99,102,241,0.5)" : "1px solid rgba(255,255,255,0.08)",
+          boxShadow: focused ? "0 0 0 3px rgba(99,102,241,0.1)" : "none",
+        }}
+      />
+      <label
+        className="absolute left-4 transition-all duration-200 pointer-events-none"
+        style={{
+          top: active ? "8px" : "50%",
+          transform: active ? "none" : "translateY(-50%)",
+          fontSize: active ? "10px" : "14px",
+          color: focused ? "#6366f1" : "#64748b",
+          letterSpacing: active ? "0.05em" : "normal",
+          fontWeight: active ? 600 : 400,
+        }}
+      >
+        {label}
+      </label>
+    </div>
+  );
+}
