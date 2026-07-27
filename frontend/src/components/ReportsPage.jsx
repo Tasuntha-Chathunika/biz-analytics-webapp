@@ -45,7 +45,7 @@ const insights = [
 export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState("financial");
   const [generating, setGenerating] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState < string | null > (null);
 
   const showToast = (msg: string) => {
     setToast(msg);
