@@ -84,12 +84,12 @@ const kpiCards = [
 ];
 
 /* ── Custom tooltip ───────────────────────────────────── */
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-2xl px-4 py-3 animate-fade-up" style={{ background: "rgba(12,9,28,0.97)", border: "1px solid rgba(139,92,246,0.25)", boxShadow: "0 24px 60px rgba(0,0,0,0.6)" }}>
       <p className="text-xs font-semibold mb-2.5 uppercase tracking-wider" style={{ color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2.5 text-sm mb-1">
           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: p.color, boxShadow: `0 0 8px ${p.color}` }} />
           <span className="text-slate-400">{p.name}</span>
@@ -104,7 +104,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-const statusConfig: Record<string, { color: string; bg: string; border: string; dot: string }> = {
+const statusConfig = {
   Completed: { color: "#34d399", bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.25)", dot: "#10b981" },
   Pending:   { color: "#fbbf24", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.25)", dot: "#f59e0b" },
   Processing:{ color: "#38bdf8", bg: "rgba(56,189,248,0.1)", border: "rgba(56,189,248,0.25)", dot: "#38bdf8" },
@@ -112,7 +112,7 @@ const statusConfig: Record<string, { color: string; bg: string; border: string; 
 };
 
 /* ── Sparkline mini chart (SVG path from data) ─────────── */
-function Sparkline({ data, color }: { data: number[]; color: string }) {
+function Sparkline({ data, color }) {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const w = 80; const h = 28;
@@ -137,7 +137,7 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 export default function AnalyticsDashboard() {
-  const [trendView, setTrendView] = useState<"monthly" | "weekly">("monthly");
+  const [trendView, setTrendView] = useState("monthly");
   const chartData = trendView === "monthly" ? salesData : weeklyData;
   const xKey = trendView === "monthly" ? "month" : "day";
 
@@ -201,7 +201,7 @@ export default function AnalyticsDashboard() {
               <p className="text-xs mt-0.5" style={{ color: "#475569" }}>Performance over time · all amounts in USD</p>
             </div>
             <div className="flex gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              {(["monthly", "weekly"] as const).map((v) => (
+              {(["monthly", "weekly"]).map((v) => (
                 <button
                   key={v}
                   onClick={() => setTrendView(v)}

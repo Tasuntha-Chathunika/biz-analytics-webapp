@@ -74,7 +74,7 @@ export default function LandingPage() {
             Now with AI-generated executive insights  ✦  v2.0
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-[1.05] tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
             Turn Raw Sales Data
             <br />
             <span
@@ -142,7 +142,7 @@ export default function LandingPage() {
             <div className="p-4 space-y-3" style={{ background: "rgba(6,5,15,0.97)" }}>
               {/* KPI row */}
               <div className="grid grid-cols-4 gap-3">
-                {mockKPIs.map((kpi, i) => (
+                {mockKPIs.map((kpi) => (
                   <div key={kpi.label} className="rounded-xl p-3 relative overflow-hidden" style={{ background: `${kpi.color}0f`, border: `1px solid ${kpi.color}20` }}>
                     <div className="absolute -right-3 -top-3 w-12 h-12 rounded-full blur-xl opacity-30" style={{ background: kpi.color }} />
                     <p className="text-xs mb-1" style={{ color: "#475569" }}>{kpi.label}</p>

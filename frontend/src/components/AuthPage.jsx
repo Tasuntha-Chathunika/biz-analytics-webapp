@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function AuthPage() {
-  const [tab, setTab] = useState<"signin" | "signup">("signin");
+export default function AuthPage({ onAuthSuccess }) {
+  const [tab, setTab] = useState("signin");
   const [showPass, setShowPass] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -12,10 +12,17 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => { setLoading(false); navigate("/dashboard"); }, 1200);
+    setTimeout(() => { 
+      setLoading(false); 
+      if (onAuthSuccess) {
+        onAuthSuccess({ name: name || "Test User", email: email, role: "admin" });
+      } else {
+        navigate("/dashboard");
+      }
+    }, 1200);
   };
 
   return (
@@ -47,7 +54,7 @@ export default function AuthPage() {
         <div className="glass-strong rounded-2xl p-8" style={{ boxShadow: "0 40px 100px rgba(0,0,0,0.5)" }}>
           {/* Tab toggle */}
           <div className="flex mb-6 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            {(["signin", "signup"] as const).map((t) => (
+            {(["signin", "signup"]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -178,9 +185,7 @@ export default function AuthPage() {
   );
 }
 
-function FloatingInput({ label, value, onChange, type, required }: {
-  label: string; value: string; onChange: (v: string) => void; type: string; required?: boolean;
-}) {
+function FloatingInput({ label, value, onChange, type, required }) {
   const [focused, setFocused] = useState(false);
   const active = focused || value.length > 0;
   return (

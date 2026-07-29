@@ -3,7 +3,7 @@ import { transactions } from "../mockData";
 
 const categories = ["All", "Electronics", "Fashion", "Software", "Home & Garden", "Sports"];
 
-const statusColors: Record<string, string> = {
+const statusColors = {
   Completed: "#10b981",
   Pending: "#f59e0b",
   Processing: "#38bdf8",
@@ -14,14 +14,14 @@ const PAGE_SIZE = 8;
 
 export default function ActivityPage() {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [uploadFile, setUploadFile] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const dropRef = useRef<HTMLDivElement>(null);
+  const dropRef = useRef(null);
 
-  const simulateUpload = (name: string) => {
+  const simulateUpload = (name) => {
     setUploadFile(name);
     setUploadProgress(0);
     let p = 0;
@@ -32,7 +32,7 @@ export default function ActivityPage() {
     }, 120);
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];

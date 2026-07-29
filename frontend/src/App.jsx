@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import UploadDashboard from './components/UploadDashboard';
@@ -16,12 +17,10 @@ function App() {
   const [user, setUser] = useState(null);
   const [checkingUser, setCheckingUser] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [activeSubTab, setActiveSubTab] = useState('Overview');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
-  // Landing vs Auth view state
-  const [showAuth, setShowAuth] = useState(false);
+  const navigate = useNavigate();
 
   // 1. Check user authentication
   useEffect(() => {
@@ -64,7 +63,7 @@ function App() {
     setRefreshTrigger(prev => prev + 1);
     if (isCleared) {
       setDataLoaded(false);
-      setActiveTab('dashboard');
+      navigate('/dashboard');
     }
   };
 
@@ -72,8 +71,7 @@ function App() {
     localStorage.removeItem('token');
     setUser(null);
     setDataLoaded(false);
-    setActiveTab('dashboard');
-    setShowAuth(false);
+    navigate('/');
   };
 
   if (checkingUser) {
@@ -85,91 +83,47 @@ function App() {
     );
   }
 
-  // If not logged in, show either Landing Page or Auth Page
-  if (!user) {
-    if (showAuth) {
-      return (
-        <AuthPage 
-          onAuthSuccess={(u) => { setUser(u); setRefreshTrigger(prev => prev + 1); }} 
-          onBack={() => setShowAuth(false)}
-        />
-      );
-    }
-    return (
-      <LandingPage onNavigate={() => {
-        // Here we could pass initial state to AuthPage if we want to differentiate login vs signup
-        setShowAuth(true);
-      }} />
-    );
-  }
-
-  // Determine if we need to show upload page or dashboard
-  const showUploadScreen = !dataLoaded && user.role === 'admin' && activeTab === 'dashboard';
-
-  const renderContent = () => {
-    if (showUploadScreen) {
-      return (
-        <UploadDashboard onUploadSuccess={() => {
-          setRefreshTrigger(prev => prev + 1);
-          setActiveTab('dashboard');
-        }} />
-      );
-    }
-
-    switch (activeTab) {
-      case 'dashboard':
-        return <AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />;
-      case 'analytics':
-        return ['admin', 'manager'].includes(user.role)
-          ? <AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />
-          : <AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />;
-      case 'ledger':
-        return ['admin', 'manager'].includes(user.role)
-          ? <RecordsTable onDataChanged={handleDataChanged} userRole={user.role} />
-          : null;
-      case 'upload':
-        return user.role === 'admin'
-          ? <UploadDashboard onUploadSuccess={() => {
-              setRefreshTrigger(prev => prev + 1);
-              setActiveTab('dashboard');
-            }} />
-          : null;
-      case 'reports':
-        return <ReportsPage />;
-      case 'activity':
-        return <ActivityPage />;
-      case 'settings':
-        return <SettingsPage user={user} onLogout={handleLogout} />;
-      default:
-        return <AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />;
-    }
-  };
-
   return (
-    <div className="app-layout">
-      {/* Sidebar */}
-      <Sidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        user={user}
-      />
-
-      {/* Main Area */}
-      <div className="main-area">
-        {/* Top Bar */}
-        <TopBar
-          user={user}
-          onLogout={handleLogout}
-          activeSubTab={activeSubTab}
-          onSubTabChange={setActiveSubTab}
-        />
-
-        {/* Content */}
-        <main className="main-content">
-          {renderContent()}
-        </main>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
+      <Route path="/auth" element={
+        user ? <Navigate to="/dashboard" /> : <AuthPage onAuthSuccess={(u) => { setUser(u); setRefreshTrigger(prev => prev + 1); navigate('/dashboard'); }} />
+      } />
+      <Route path="/dashboard/*" element={
+        user ? (
+          <div className="app-layout">
+            <Sidebar user={user} />
+            <div className="main-area">
+              <TopBar user={user} onLogout={handleLogout} activeSubTab={activeSubTab} onSubTabChange={setActiveSubTab} />
+              <main className="main-content">
+                <Routes>
+                   <Route path="/" element={
+                     (!dataLoaded && user.role === 'admin') 
+                       ? <UploadDashboard onUploadSuccess={() => { setRefreshTrigger(prev => prev + 1); navigate('/dashboard'); }} />
+                       : <AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />
+                   } />
+                   <Route path="analytics" element={<AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />} />
+                   
+                   {['admin', 'manager'].includes(user.role) && (
+                     <Route path="ledger" element={<RecordsTable onDataChanged={handleDataChanged} userRole={user.role} />} />
+                   )}
+                   
+                   {user.role === 'admin' && (
+                     <Route path="upload" element={<UploadDashboard onUploadSuccess={() => { setRefreshTrigger(prev => prev + 1); navigate('/dashboard'); }} />} />
+                   )}
+                   
+                   <Route path="reports" element={<ReportsPage />} />
+                   <Route path="activity" element={<ActivityPage />} />
+                   <Route path="settings" element={<SettingsPage user={user} onLogout={handleLogout} />} />
+                   
+                   <Route path="*" element={<Navigate to="/dashboard" />} />
+                </Routes>
+              </main>
+            </div>
+          </div>
+        ) : <Navigate to="/auth" />
+      } />
+    </Routes>
   );
 }
 

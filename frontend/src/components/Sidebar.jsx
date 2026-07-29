@@ -1,4 +1,11 @@
-const Sidebar = ({ activeTab, onTabChange, user }) => {
+import { Link, useLocation } from 'react-router-dom';
+
+const Sidebar = ({ user }) => {
+  const location = useLocation();
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  // Default to dashboard if we are at exactly /dashboard
+  const activeTab = pathParts.length > 1 ? pathParts[1] : 'dashboard';
+
   const navItems = [
     {
       id: 'dashboard',
@@ -118,15 +125,17 @@ const Sidebar = ({ activeTab, onTabChange, user }) => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-5 flex flex-col gap-2 overflow-y-auto">
-        {filteredItems.map((item) => (
-          <button
+        {filteredItems.map((item) => {
+          const toPath = item.id === 'dashboard' ? '/dashboard' : `/dashboard/${item.id}`;
+          return (
+          <Link
             key={item.id}
+            to={toPath}
             className={`relative flex items-center gap-3.5 w-full text-left px-3 py-2.5 rounded-2xl text-[0.92rem] font-semibold transition-all duration-300 ease-out cursor-pointer group overflow-hidden
               ${activeTab === item.id
                 ? 'bg-gradient-to-r from-indigo-50/80 to-purple-50/80 text-indigo-800 shadow-[0_2px_12px_-2px_rgba(99,102,241,0.12)] border border-indigo-100/60'
                 : 'bg-transparent text-slate-500 hover:bg-slate-50/80 border border-transparent hover:border-slate-200/50 hover:text-slate-800 hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]'
               }`}
-            onClick={() => onTabChange(item.id)}
           >
             {/* Active Glow Indicator */}
             {activeTab === item.id && (
@@ -147,8 +156,8 @@ const Sidebar = ({ activeTab, onTabChange, user }) => {
             <span className={`tracking-wide transition-all duration-300 ${activeTab === item.id ? 'translate-x-0.5' : 'group-hover:translate-x-1'}`}>
               {item.label}
             </span>
-          </button>
-        ))}
+          </Link>
+        )})}
       </nav>
 
       {/* Storage Widget */}

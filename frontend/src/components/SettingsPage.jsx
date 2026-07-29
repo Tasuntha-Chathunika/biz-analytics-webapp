@@ -40,7 +40,7 @@ const themes = [
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [toast, setToast] = useState < string | null > (null);
+  const [toast, setToast] = useState(null);
   const [name, setName] = useState("S.D. Tasuntha");
   const [email, setEmail] = useState("sd.tasuntha@acmecorp.io");
   const [role, setRole] = useState("Administrator");
@@ -51,7 +51,7 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState(true);
   const [apiAccess, setApiAccess] = useState(false);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
@@ -274,7 +274,7 @@ export default function SettingsPage() {
   );
 }
 
-function SettingsInput({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function SettingsInput({ label, value, onChange, type = "text" }) {
   return (
     <div>
       <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>{label}</label>

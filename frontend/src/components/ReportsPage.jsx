@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { salesData, kpiData, categoryData, topProducts } from "../mockData";
+import { categoryData } from "../mockData";
 
 const reportTypes = [
   {
@@ -45,19 +45,19 @@ const insights = [
 export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState("financial");
   const [generating, setGenerating] = useState(false);
-  const [toast, setToast] = useState < string | null > (null);
+  const [toast, setToast] = useState(null);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAction = (action: string) => {
+  const handleAction = (action) => {
     setGenerating(true);
     setTimeout(() => { setGenerating(false); showToast(`${action} ready — check your downloads.`); }, 1800);
   };
 
-  const report = reportTypes.find((r) => r.id === selectedReport)!;
+  const report = reportTypes.find((r) => r.id === selectedReport);
 
   const quarterlyData = [
     { q: "Q1 2024", revenue: 145000 },
@@ -171,7 +171,7 @@ export default function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
               <XAxis dataKey="q" tick={{ fill: "#475569", fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#475569", fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontFamily: "'Plus Jakarta Sans', sans-serif" }} formatter={(v: any) => [`$${v.toLocaleString()}`, "Revenue"]} />
+              <Tooltip contentStyle={{ background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontFamily: "'Plus Jakarta Sans', sans-serif" }} formatter={(v) => [`$${v.toLocaleString()}`, "Revenue"]} />
               <Bar dataKey="revenue" fill="url(#barGrad)" radius={[6, 6, 0, 0]} />
               <defs>
                 <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
