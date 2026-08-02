@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { login, signup } from "../api/api";
 
 export default function AuthPage({ onAuthSuccess }) {
   const [tab, setTab] = useState("signin");
@@ -8,21 +9,35 @@ export default function AuthPage({ onAuthSuccess }) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
+  const [role, setRole] = useState("admin");
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => { 
-      setLoading(false); 
+    setError("");
+    try {
+      let res;
+      if (tab === "signin") {
+        res = await login(email, password);
+      } else {
+        res = await signup(email, password, name || "User", role);
+      }
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
       if (onAuthSuccess) {
-        onAuthSuccess({ name: name || "Test User", email: email, role: "admin" });
+        onAuthSuccess(user);
       } else {
         navigate("/dashboard");
       }
-    }, 1200);
+    } catch (err) {
+      setError(err.response?.data?.error || "Authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,10 +128,25 @@ export default function AuthPage({ onAuthSuccess }) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {tab === "signup" && (
-              <div className="grid grid-cols-2 gap-3">
-                <FloatingInput label="Full Name" value={name} onChange={setName} type="text" required />
-                <FloatingInput label="Company" value={company} onChange={setCompany} type="text" />
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <FloatingInput label="Full Name" value={name} onChange={setName} type="text" required />
+                  <FloatingInput label="Company" value={company} onChange={setCompany} type="text" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none transition-all"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <option value="admin" style={{ background: "#0f172a" }}>Admin</option>
+                    <option value="manager" style={{ background: "#0f172a" }}>Manager</option>
+                    <option value="viewer" style={{ background: "#0f172a" }}>Viewer</option>
+                  </select>
+                </div>
+              </>
             )}
             <FloatingInput label="Email address" value={email} onChange={setEmail} type="email" required />
             <div className="relative">
@@ -147,6 +177,12 @@ export default function AuthPage({ onAuthSuccess }) {
                   <span className="text-sm" style={{ color: "#64748b" }}>Remember me</span>
                 </label>
                 <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: "#6366f1" }}>Forgot password?</a>
+              </div>
+            )}
+
+            {error && (
+              <div className="text-sm text-center py-2 px-3 rounded-xl" style={{ background: "rgba(244,63,94,0.1)", color: "#fb7185", border: "1px solid rgba(244,63,94,0.2)" }}>
+                {error}
               </div>
             )}
 

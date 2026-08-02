@@ -54,11 +54,11 @@ exports.getMonthlyTrend = async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
-        strftime('%Y-%m', transaction_date) as month,
+        TO_CHAR(transaction_date, 'YYYY-MM') as month,
         SUM(revenue) as revenue
       FROM sales_records
       WHERE transaction_date IS NOT NULL
-      GROUP BY strftime('%Y-%m', transaction_date)
+      GROUP BY TO_CHAR(transaction_date, 'YYYY-MM')
       ORDER BY month ASC
     `);
     

@@ -38,12 +38,12 @@ const themes = [
   { id: "system", label: "System Default", icon: "💻" },
 ];
 
-export default function SettingsPage() {
+export default function SettingsPage({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState("profile");
   const [toast, setToast] = useState(null);
-  const [name, setName] = useState("S.D. Tasuntha");
-  const [email, setEmail] = useState("sd.tasuntha@acmecorp.io");
-  const [role, setRole] = useState("Administrator");
+  const [name, setName] = useState(user?.name || "S.D. Tasuntha");
+  const [email, setEmail] = useState(user?.email || "sd.tasuntha@acmecorp.io");
+  const [role, setRole] = useState(user?.role || "Administrator");
   const [company, setCompany] = useState("Acme Corp");
   const [selectedTheme, setSelectedTheme] = useState("dark");
   const [selectedAccent, setSelectedAccent] = useState("indigo");
@@ -93,7 +93,7 @@ export default function SettingsPage() {
             {/* Avatar */}
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl text-white flex-shrink-0" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
-                SD
+                {name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
               <div>
                 <button className="text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-white/5" style={{ border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8" }}>

@@ -77,7 +77,7 @@ exports.register = async (req, res) => {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = db.hashPassword(password, salt);
 
-    // Insert user into SQLite
+    // Insert user into PostgreSQL
     await db.query(
       'INSERT INTO users (email, password_hash, salt, role, name) VALUES ($1, $2, $3, $4, $5)',
       [email.trim().toLowerCase(), hash, salt, role, name]

@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { kpiData, salesData, weeklyData, categoryData, regionData, topProducts, transactions } from "../mockData";
+import { kpiData as mockKpiData, salesData, weeklyData, categoryData as mockCategoryData, regionData as mockRegionData, topProducts as mockTopProducts, transactions as mockTransactions } from "../mockData";
+import { getKPIs, getMonthlyTrend, getRegionalSales, getCategorySales, getTopProducts, getRecentTransactions } from "../api/api";
 
-/* ── KPI card definitions ─────────────────────────────── */
-const kpiCards = [
+/* ── KPI card config (values filled dynamically) ──────── */
+const kpiCardConfig = [
   {
     label: "Total Revenue",
-    value: "$128,430",
-    raw: kpiData.totalRevenue.change,
+    key: "totalRevenue",
+    format: (v) => `$${Number(v).toLocaleString()}`,
     trend: "up",
+    raw: mockKpiData.totalRevenue.change,
     sub: "vs last month",
     cardClass: "card-violet",
     iconBg: "linear-gradient(135deg, #6366f1, #818cf8)",
@@ -27,9 +29,10 @@ const kpiCards = [
   },
   {
     label: "Total Orders",
-    value: "1,420",
-    raw: kpiData.totalOrders.change,
+    key: "totalTransactions",
+    format: (v) => Number(v).toLocaleString(),
     trend: "up",
+    raw: mockKpiData.totalOrders.change,
     sub: "vs last month",
     cardClass: "card-emerald",
     iconBg: "linear-gradient(135deg, #10b981, #34d399)",
@@ -46,9 +49,10 @@ const kpiCards = [
   },
   {
     label: "Avg Order Value",
-    value: "$90.45",
-    raw: kpiData.aov.change,
+    key: "averageOrderValue",
+    format: (v) => `$${Number(v).toFixed(2)}`,
     trend: "up",
+    raw: mockKpiData.aov.change,
     sub: "vs last month",
     cardClass: "card-sky",
     iconBg: "linear-gradient(135deg, #0ea5e9, #38bdf8)",
@@ -62,11 +66,12 @@ const kpiCards = [
     ),
   },
   {
-    label: "Active Customers",
-    value: "850",
-    raw: Math.abs(kpiData.activeCustomers.change),
-    trend: "down",
-    sub: "vs last month",
+    label: "Total Quantity",
+    key: "totalQuantity",
+    format: (v) => Number(v).toLocaleString(),
+    trend: "up",
+    raw: Math.abs(mockKpiData.activeCustomers.change),
+    sub: "units sold",
     cardClass: "card-rose",
     iconBg: "linear-gradient(135deg, #f43f5e, #fb7185)",
     iconGlow: "rgba(244,63,94,0.5)",
@@ -130,15 +135,92 @@ function Sparkline({ data, color }) {
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={`M ${area}`} fill={`url(#spark-${color.replace("#", "")})`} />
+      <path d={area} fill={`url(#spark-${color.replace("#", "")})`} />
       <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-export default function AnalyticsDashboard() {
+export default function AnalyticsDashboard({ refreshTrigger, userRole }) {
   const [trendView, setTrendView] = useState("monthly");
-  const chartData = trendView === "monthly" ? salesData : weeklyData;
+  const [kpiLive, setKpiLive] = useState(null);
+  const [monthlyData, setMonthlyData] = useState(null);
+  const [regionData, setRegionData] = useState(mockRegionData);
+  const [categoryData, setCategoryData] = useState(mockCategoryData);
+  const [topProductsData, setTopProductsData] = useState(mockTopProducts);
+  const [transactions, setTransactions] = useState(mockTransactions);
+
+  // Fetch real data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [kpiRes, trendRes, recentRes] = await Promise.all([
+          getKPIs(),
+          getMonthlyTrend(),
+          getRecentTransactions(),
+        ]);
+        if (kpiRes.data) setKpiLive(kpiRes.data);
+        if (trendRes.data?.length > 0) {
+          setMonthlyData(trendRes.data.map(r => ({
+            month: r.month,
+            revenue: Number(r.revenue),
+          })));
+        }
+        if (recentRes.data?.length > 0) {
+          setTransactions(recentRes.data.map((r, i) => ({
+            id: `TX-${String(i + 9012)}`,
+            date: r.transaction_date?.substring(0, 10) || '',
+            customer: r.region || 'Unknown',
+            product: r.product_name || r.category || '-',
+            category: r.category || '-',
+            unitPrice: Number(r.revenue) / (r.quantity_sold || 1),
+            quantity: r.quantity_sold || 1,
+            total: Number(r.revenue),
+            status: Number(r.revenue) >= 500 ? 'Completed' : 'Pending',
+          })));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch KPIs/trends — using mock data:', err.message);
+      }
+
+      // Fetch role-restricted data (admin/manager only)
+      if (userRole === 'admin' || userRole === 'manager') {
+        try {
+          const [regRes, catRes, prodRes] = await Promise.all([
+            getRegionalSales(),
+            getCategorySales(),
+            getTopProducts(),
+          ]);
+          if (regRes.data?.length > 0) setRegionData(regRes.data.map(r => ({ region: r.region, revenue: Number(r.revenue) })));
+          if (catRes.data?.length > 0) {
+            const total = catRes.data.reduce((s, c) => s + Number(c.revenue), 0);
+            const colors = ["#6366f1", "#10b981", "#8b5cf6", "#38bdf8", "#f59e0b", "#f43f5e", "#ec4899"];
+            setCategoryData(catRes.data.map((c, i) => ({
+              name: c.category,
+              value: total > 0 ? Math.round((Number(c.revenue) / total) * 100) : 0,
+              color: colors[i % colors.length],
+            })));
+          }
+          if (prodRes.data?.length > 0) setTopProductsData(prodRes.data.map(p => ({
+            name: p.product_name,
+            units: Number(p.quantity),
+            revenue: Number(p.revenue),
+          })));
+        } catch (err) {
+          console.warn('Failed to fetch restricted analytics — using mock data:', err.message);
+        }
+      }
+    };
+    fetchData();
+  }, [refreshTrigger, userRole]);
+
+  // Build KPI cards with live or mock values
+  const kpiCards = kpiCardConfig.map(cfg => ({
+    ...cfg,
+    value: kpiLive ? cfg.format(kpiLive[cfg.key] || 0) : cfg.format(0),
+  }));
+
+  const chartData = trendView === "monthly" ? (monthlyData || salesData) : weeklyData;
   const xKey = trendView === "monthly" ? "month" : "day";
 
   const sparkData = [42, 55, 48, 71, 63, 89, 94, 112, 98, 128, 145, 163];
@@ -333,8 +415,8 @@ export default function AnalyticsDashboard() {
           <h3 className="font-bold text-white text-sm mb-0.5">Top Products</h3>
           <p className="text-xs mb-5" style={{ color: "#475569" }}>By revenue this period</p>
           <div className="space-y-4">
-            {topProducts.map((p, i) => {
-              const pct = Math.round((p.revenue / topProducts[0].revenue) * 100);
+            {topProductsData.map((p, i) => {
+              const pct = Math.round((p.revenue / topProductsData[0].revenue) * 100);
               const palette = [
                 { grad: "linear-gradient(to right, #6366f1, #818cf8)", color: "#818cf8", bg: "rgba(99,102,241,0.12)" },
                 { grad: "linear-gradient(to right, #8b5cf6, #a78bfa)", color: "#a78bfa", bg: "rgba(139,92,246,0.12)" },
@@ -387,7 +469,7 @@ export default function AnalyticsDashboard() {
               Live data
             </span>
             <a
-              href="/data"
+              href="/dashboard/ledger"
               className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:scale-105"
               style={{ background: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.2)" }}
             >

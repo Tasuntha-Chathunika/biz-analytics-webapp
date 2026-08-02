@@ -14,13 +14,13 @@ exports.getSales = async (req, res) => {
       const searchPattern = `%${search.trim()}%`;
       rowsResult = await db.query(
         `SELECT * FROM sales_records 
-         WHERE region LIKE $1 OR category LIKE $2 OR product_name LIKE $3
+         WHERE region ILIKE $1 OR category ILIKE $2 OR product_name ILIKE $3
          ORDER BY transaction_date DESC LIMIT $4 OFFSET $5`,
         [searchPattern, searchPattern, searchPattern, limit, offset]
       );
       countResult = await db.query(
         `SELECT COUNT(*) as count FROM sales_records 
-         WHERE region LIKE $1 OR category LIKE $2 OR product_name LIKE $3`,
+         WHERE region ILIKE $1 OR category ILIKE $2 OR product_name ILIKE $3`,
         [searchPattern, searchPattern, searchPattern]
       );
     } else {

@@ -24,6 +24,10 @@ router.get('/analytics/regional-sales', authenticateUser, restrictTo('admin', 'm
 router.get('/analytics/category-sales', authenticateUser, restrictTo('admin', 'manager'), analyticsController.getCategorySales);
 router.get('/analytics/top-products', authenticateUser, restrictTo('admin', 'manager'), analyticsController.getTopProducts);
 
+// Recent transactions for dashboard widget (any authenticated user)
+// NOTE: Must be defined BEFORE /sales/:id to prevent 'recent' from matching as :id
+router.get('/sales/recent', authenticateUser, salesController.getRecentTransactions);
+
 // Sales record management
 router.get('/sales', authenticateUser, restrictTo('admin', 'manager'), salesController.getSales);
 router.delete('/sales/:id', authenticateUser, restrictTo('admin'), salesController.deleteSale);
@@ -31,8 +35,5 @@ router.delete('/sales', authenticateUser, restrictTo('admin'), salesController.c
 
 // Ingestion (Admin only)
 router.post('/upload', authenticateUser, restrictTo('admin'), upload.single('file'), uploadController.uploadCSV);
-
-// Recent transactions for dashboard widget (any authenticated user)
-router.get('/sales/recent', authenticateUser, salesController.getRecentTransactions);
 
 module.exports = router;
