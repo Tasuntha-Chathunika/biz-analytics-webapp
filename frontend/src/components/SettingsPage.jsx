@@ -60,26 +60,25 @@ export default function SettingsPage({ user, onLogout }) {
     <div className="flex gap-5 pb-4 relative h-full">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-white" style={{ background: "rgba(16,185,129,0.9)", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", border: "1px solid rgba(16,185,129,0.3)" }}>
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-emerald-900 bg-emerald-100 shadow-lg border border-emerald-200">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
           {toast}
         </div>
       )}
 
       {/* Side nav */}
-      <div className="glass rounded-2xl p-2 h-fit w-52 flex-shrink-0" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="glass-card rounded-2xl p-2 h-fit w-52 flex-shrink-0">
         {settingsTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 mb-0.5"
             style={{
-              background: activeTab === tab.id ? "rgba(99,102,241,0.2)" : "transparent",
-              color: activeTab === tab.id ? "#a5b4fc" : "#64748b",
-              border: activeTab === tab.id ? "1px solid rgba(99,102,241,0.25)" : "1px solid transparent",
+              background: activeTab === tab.id ? "rgba(99,102,241,0.1)" : "transparent",
+              color: activeTab === tab.id ? "#4f46e5" : "var(--text-secondary)",
             }}
           >
-            <span style={{ color: activeTab === tab.id ? "#6366f1" : "#475569" }}>{tab.icon}</span>
+            <span style={{ color: activeTab === tab.id ? "#6366f1" : "var(--text-muted)" }}>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
@@ -88,18 +87,18 @@ export default function SettingsPage({ user, onLogout }) {
       {/* Content */}
       <div className="flex-1 min-w-0 space-y-4">
         {activeTab === "profile" && (
-          <div className="glass rounded-2xl p-6 space-y-5" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
-            <h3 className="font-semibold text-white">General Profile</h3>
+          <div className="glass-card rounded-2xl p-6 space-y-5">
+            <h3 className="font-semibold text-slate-800">General Profile</h3>
             {/* Avatar */}
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl text-white flex-shrink-0" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
                 {name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
               <div>
-                <button className="text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-white/5" style={{ border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8" }}>
+                <button className="text-sm font-medium px-4 py-2 rounded-lg transition-all bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm">
                   Upload Photo
                 </button>
-                <p className="text-xs mt-1.5" style={{ color: "#475569" }}>PNG, JPG or WEBP. Max 2MB.</p>
+                <p className="text-xs mt-1.5 text-slate-500">PNG, JPG or WEBP. Max 2MB.</p>
               </div>
             </div>
             {/* Fields */}
@@ -109,7 +108,13 @@ export default function SettingsPage({ user, onLogout }) {
               <SettingsInput label="Email Address" value={email} onChange={setEmail} type="email" />
               <SettingsInput label="Company Name" value={company} onChange={setCompany} />
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">
+              <button
+                onClick={onLogout}
+                className="px-5 py-2.5 rounded-xl font-medium text-sm text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all"
+              >
+                Log Out
+              </button>
               <button
                 onClick={() => showToast("Profile saved successfully.")}
                 className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:scale-105"
@@ -122,11 +127,11 @@ export default function SettingsPage({ user, onLogout }) {
         )}
 
         {activeTab === "appearance" && (
-          <div className="glass rounded-2xl p-6 space-y-6" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
-            <h3 className="font-semibold text-white">Appearance & Theme</h3>
+          <div className="glass-card rounded-2xl p-6 space-y-6">
+            <h3 className="font-semibold text-slate-800">Appearance & Theme</h3>
             {/* Theme selector */}
             <div>
-              <p className="text-sm font-medium text-slate-300 mb-3">Color Mode</p>
+              <p className="text-sm font-medium text-slate-600 mb-3">Color Mode</p>
               <div className="grid grid-cols-3 gap-3">
                 {themes.map((t) => (
                   <button
@@ -134,12 +139,12 @@ export default function SettingsPage({ user, onLogout }) {
                     onClick={() => setSelectedTheme(t.id)}
                     className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
                     style={{
-                      background: selectedTheme === t.id ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.03)",
-                      border: selectedTheme === t.id ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                      background: selectedTheme === t.id ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.5)",
+                      border: selectedTheme === t.id ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(0,0,0,0.05)",
                     }}
                   >
                     <span className="text-2xl">{t.icon}</span>
-                    <span className="text-xs font-medium" style={{ color: selectedTheme === t.id ? "#a5b4fc" : "#64748b" }}>{t.label}</span>
+                    <span className="text-xs font-medium" style={{ color: selectedTheme === t.id ? "#4f46e5" : "#64748b" }}>{t.label}</span>
                   </button>
                 ))}
               </div>
@@ -177,54 +182,54 @@ export default function SettingsPage({ user, onLogout }) {
         )}
 
         {activeTab === "connections" && (
-          <div className="glass rounded-2xl p-6 space-y-4" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
-            <h3 className="font-semibold text-white">Database Connections</h3>
+          <div className="glass-card rounded-2xl p-6 space-y-4">
+            <h3 className="font-semibold text-slate-800">Database Connections</h3>
             {/* Active connection */}
-            <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
               <div className="relative">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100 text-emerald-600">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" /></svg>
                 </div>
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-current" style={{ background: "#10b981", borderColor: "#0f172a", animation: "pulse-ring 2s infinite" }} />
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-white">PostgreSQL Pooler</p>
-                <p className="text-xs mt-0.5" style={{ color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>aws-1-ap-south-1.pooler.supabase.com:6543</p>
+                <p className="text-sm font-semibold text-slate-800">PostgreSQL Pooler</p>
+                <p className="text-xs mt-0.5 text-slate-500 font-mono">aws-1-ap-south-1.pooler.supabase.com:6543</p>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", border: "1px solid rgba(16,185,129,0.25)" }}>● Connected</span>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">● Connected</span>
             </div>
             {/* Add connection */}
-            <div className="flex items-center gap-4 p-4 rounded-xl" style={{ border: "2px dashed rgba(255,255,255,0.08)" }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.04)", color: "#475569" }}>
+            <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white text-slate-400 border border-slate-200">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500">Add new connection</p>
-                <p className="text-xs" style={{ color: "#334155" }}>MySQL, MongoDB, BigQuery, Snowflake…</p>
+                <p className="text-sm font-medium text-slate-700">Add new connection</p>
+                <p className="text-xs text-slate-500">MySQL, MongoDB, BigQuery, Snowflake…</p>
               </div>
-              <button className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-400 transition-all hover:text-white hover:bg-white/5" style={{ border: "1px solid rgba(255,255,255,0.1)" }}>Connect</button>
+              <button className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-all shadow-sm">Connect</button>
             </div>
           </div>
         )}
 
         {activeTab === "security" && (
           <div className="space-y-4">
-            <div className="glass rounded-2xl p-6 space-y-4" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
-              <h3 className="font-semibold text-white">Security Settings</h3>
+            <div className="glass-card rounded-2xl p-6 space-y-4">
+              <h3 className="font-semibold text-slate-800">Security Settings</h3>
               {[
                 { label: "Two-Factor Authentication", desc: "Require a verification code on sign-in", value: twoFa, onChange: setTwoFa },
                 { label: "Email Notifications", desc: "Alerts for login attempts and data exports", value: notifications, onChange: setNotifications },
                 { label: "API Access", desc: "Allow third-party apps to connect via API key", value: apiAccess, onChange: setApiAccess },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <div key={item.label} className="flex items-center justify-between py-3 border-b border-slate-100">
                   <div>
-                    <p className="text-sm font-medium text-white">{item.label}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{item.desc}</p>
+                    <p className="text-sm font-medium text-slate-800">{item.label}</p>
+                    <p className="text-xs mt-0.5 text-slate-500">{item.desc}</p>
                   </div>
                   <button
                     onClick={() => item.onChange(!item.value)}
                     className="w-11 h-6 rounded-full transition-all relative flex-shrink-0"
-                    style={{ background: item.value ? "#6366f1" : "rgba(255,255,255,0.1)" }}
+                    style={{ background: item.value ? "#6366f1" : "#cbd5e1" }}
                   >
                     <span
                       className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow"
@@ -245,22 +250,22 @@ export default function SettingsPage({ user, onLogout }) {
             </div>
 
             {/* Danger Zone */}
-            <div className="glass rounded-2xl p-6 space-y-4" style={{ border: "1px solid rgba(244,63,94,0.25)", background: "rgba(244,63,94,0.03)" }}>
+            <div className="glass-card rounded-2xl p-6 space-y-4 border border-rose-200 bg-rose-50/50">
               <div className="flex items-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                <h3 className="font-semibold" style={{ color: "#f43f5e" }}>Danger Zone</h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                <h3 className="font-semibold text-rose-600">Danger Zone</h3>
               </div>
               <div className="space-y-3">
                 {[
                   { label: "Clear All Uploaded Data", desc: "Permanently delete all CSV imports and parsed records." },
                   { label: "Delete Account", desc: "Irreversibly remove your account, workspace, and all data." },
                 ].map((action) => (
-                  <div key={action.label} className="flex items-center justify-between p-4 rounded-xl" style={{ border: "1px solid rgba(244,63,94,0.15)", background: "rgba(244,63,94,0.04)" }}>
+                  <div key={action.label} className="flex items-center justify-between p-4 rounded-xl border border-rose-200 bg-white shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-white">{action.label}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{action.desc}</p>
+                      <p className="text-sm font-medium text-slate-800">{action.label}</p>
+                      <p className="text-xs mt-0.5 text-slate-500">{action.desc}</p>
                     </div>
-                    <button className="ml-4 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-red-500/20" style={{ border: "1px solid rgba(244,63,94,0.4)", color: "#f43f5e" }}>
+                    <button className="ml-4 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-rose-50 border border-rose-200 text-rose-600 shadow-sm">
                       {action.label.startsWith("Delete") ? "Delete" : "Clear"}
                     </button>
                   </div>
@@ -277,15 +282,14 @@ export default function SettingsPage({ user, onLogout }) {
 function SettingsInput({ label, value, onChange, type = "text" }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>{label}</label>
+      <label className="block text-xs font-medium mb-1.5 text-slate-600">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none transition-all"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
-        onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.boxShadow = "none"; }}
+        className="w-full px-4 py-2.5 rounded-xl text-sm text-slate-800 bg-white border border-slate-200 shadow-sm outline-none transition-all"
+        onFocus={(e) => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "0 1px 2px 0 rgba(0, 0, 0, 0.05)"; }}
       />
     </div>
   );
