@@ -2,7 +2,7 @@ const fs = require('fs');
 const csv = require('csv-parser');
 const db = require('../db');
 
-exports.uploadCSV = async (req, res) => {
+exports.processCSV = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }

@@ -1,283 +1,292 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import ThreeBackground from "./ThreeBackground";
 
 const stats = [
-  { value: "10,000+", label: "Reports Generated", color: "#818cf8" },
-  { value: "99.9%",   label: "Data Accuracy",     color: "#34d399" },
-  { value: "850+",    label: "Active Companies",   color: "#c084fc" },
-  { value: "2.3M",    label: "Rows Processed",     color: "#38bdf8" },
+  { value: "10,000+", label: "Reports Generated" },
+  { value: "99.9%",   label: "Data Accuracy" },
+  { value: "850+",    label: "Active Companies" },
+  { value: "2.3M",    label: "Rows Processed" },
 ];
 
 const features = [
-  { icon: "⚡", title: "Instant CSV Parsing",        desc: "Drop any CSV or XLSX. Our engine detects columns, types, and outliers in under 2 seconds.", color: "#6366f1" },
-  { icon: "📊", title: "Real-time Visualizations",   desc: "Area charts, donut breakdowns, regional bars, and product rankings — all linked to your live data.", color: "#10b981" },
-  { icon: "📄", title: "Automated PDF Reports",       desc: "Board-ready executive summaries with AI-written insights, formatted for A4 or stakeholder email.", color: "#8b5cf6" },
-  { icon: "📅", title: "Historical Trend Analysis",  desc: "Compare month-over-month or year-over-year with a single click on the date range filter.", color: "#38bdf8" },
-  { icon: "👥", title: "Team Collaboration",          desc: "Invite teammates, assign roles, and share dashboards with one URL — no account required for viewers.", color: "#f43f5e" },
-  { icon: "🔒", title: "Enterprise Security",         desc: "AES-256 encryption, SOC 2 Type II compliant, and role-based access for every dataset you upload.", color: "#f59e0b" },
+  { 
+    title: "Instant CSV Parsing", 
+    desc: "Drop any CSV or XLSX. Our engine detects columns, types, and outliers in under 2 seconds.", 
+    icon: <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>,
+    color: "#6366f1" 
+  },
+  { 
+    title: "Real-time Visualizations", 
+    desc: "Area charts, donut breakdowns, regional bars, and product rankings — all linked to your live data.", 
+    icon: <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>,
+    color: "#10b981" 
+  },
+  { 
+    title: "Automated PDF Reports", 
+    desc: "Board-ready executive summaries with AI-written insights, formatted for A4 or stakeholder email.", 
+    icon: <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>,
+    color: "#8b5cf6" 
+  },
+  { 
+    title: "Historical Trend Analysis", 
+    desc: "Compare month-over-month or year-over-year with a single click on the date range filter.", 
+    icon: <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>,
+    color: "#38bdf8" 
+  },
+  { 
+    title: "Team Collaboration", 
+    desc: "Invite teammates, assign roles, and share dashboards with one URL — no account required for viewers.", 
+    icon: <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>,
+    color: "#f43f5e" 
+  },
+  { 
+    title: "Enterprise Security", 
+    desc: "AES-256 encryption, SOC 2 Type II compliant, and role-based access for every dataset you upload.", 
+    icon: <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>,
+    color: "#f59e0b" 
+  },
 ];
 
-const mockKPIs = [
-  { label: "Total Revenue", value: "$128,430", change: "+18.2%", up: true, color: "#818cf8" },
-  { label: "Total Orders",  value: "1,420",    change: "+12.5%", up: true, color: "#34d399" },
-  { label: "Avg Order",     value: "$90.45",   change: "+4.9%",  up: true, color: "#38bdf8" },
-  { label: "Customers",     value: "850",      change: "-2.4%",  up: false, color: "#fb7185" },
-];
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 }
+  }
+};
 
 export default function LandingPage() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Framer Motion values for interactive 3D elements
+  const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
+  const mouseY = useMotionValue(typeof window !== 'undefined' ? window.innerHeight / 2 : 0);
+
+  const springConfig = { damping: 20, stiffness: 100, mass: 0.5 };
+  const smoothMouseX = useSpring(mouseX, springConfig);
+  const smoothMouseY = useSpring(mouseY, springConfig);
+
+  // Map mouse coordinates to 3D rotation angles for the dashboard mockup
+  // Reversing the maps gives a natural "tilt towards mouse" parallax effect
+  const rotateX = useTransform(smoothMouseY, [0, typeof window !== 'undefined' ? window.innerHeight : 1000], [8, -8]);
+  const rotateY = useTransform(smoothMouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1000], [-8, 8]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+      
+      requestAnimationFrame(() => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [mouseX, mouseY]);
+
   return (
-    <div className="min-h-screen mesh-bg overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden relative bg-[#FAFAFA] selection:bg-indigo-500/20 selection:text-indigo-900 font-['Inter',sans-serif]">
+      <ThreeBackground />
+      
+      {/* ── Custom Mouse Trail ── */}
+      <motion.div
+        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-indigo-400/50 pointer-events-none z-[100] hidden md:block"
+        style={{
+          x: useTransform(smoothMouseX, v => v - 16),
+          y: useTransform(smoothMouseY, v => v - 16)
+        }}
+      />
+      <motion.div
+        className="fixed top-0 left-0 w-2 h-2 rounded-full bg-indigo-600 pointer-events-none z-[100] hidden md:block"
+        style={{
+          x: useTransform(mouseX, v => v - 4),
+          y: useTransform(mouseY, v => v - 4)
+        }}
+      />
+
+      {/* ── Spotlight Cursor Effect ── */}
+      <div 
+        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(99,102,241,0.06), transparent 40%)`
+        }}
+      />
 
       {/* ── Navbar ───────────────────────────────────────── */}
-      <nav
-        className="sticky top-0 z-50 px-6 py-3.5"
-        style={{ background: "rgba(6,5,15,0.9)", backdropFilter: "blur(40px)", borderBottom: "1px solid rgba(139,92,246,0.1)" }}
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="sticky top-0 z-50 px-6 py-4 transition-all duration-300"
+        style={{ background: "rgba(250,250,250,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(0,0,0,0.04)" }}
       >
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa)", boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" /></svg>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <div className="flex items-center gap-3 cursor-pointer group">
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.08)] bg-slate-900 group-hover:scale-105 transition-transform duration-300">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" /></svg>
+              </div>
+              <span className="font-bold text-slate-900 text-[1.1rem] tracking-tight">BizAnalytics</span>
             </div>
-            <span className="font-black text-white text-base tracking-tight">BizAnalytics</span>
+
+            <div className="hidden md:flex items-center gap-8">
+              {["Product", "Solutions", "Developers", "Resources", "Pricing"].map((item) => (
+                <a key={item} href="#" className="text-[14px] font-medium text-slate-600 hover:text-indigo-600 transition-colors">{item}</a>
+              ))}
+            </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-6 ml-8">
-            {["Features", "Pricing", "Documentation", "Blog"].map((item) => (
-              <a key={item} href="#" className="text-sm font-medium text-slate-500 hover:text-white transition-colors">{item}</a>
-            ))}
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <Link to="/auth" className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-3 py-1.5">Sign In</Link>
+          <div className="flex items-center gap-4">
+            <Link to="/auth" className="text-[14px] font-medium text-slate-600 hover:text-indigo-600 transition-colors hidden sm:block mr-2">Sign in</Link>
             <Link
               to="/auth"
-              className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 0 24px rgba(99,102,241,0.4)" }}
+              className="text-[14px] font-medium text-white px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-105 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] animate-gradient bg-[length:200%_100%]"
             >
-              Get Started Free
+              Start for free
             </Link>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* ── Hero ─────────────────────────────────────────── */}
-      <section className="pt-24 pb-20 px-6 text-center relative overflow-hidden">
-        {/* Ambient blobs */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-15 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
-        <div className="absolute top-1/4 right-1/5 w-96 h-96 rounded-full opacity-12 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #8b5cf6, transparent)" }} />
-        <div className="absolute bottom-0 left-1/2 w-[500px] h-64 rounded-full opacity-08 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #10b981, transparent)" }} />
+      <section className="pt-28 pb-20 px-6 text-center relative z-10">
+        <motion.div 
+          className="max-w-[1000px] mx-auto relative"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium mb-10 shadow-sm border border-slate-200/60 bg-white/50 backdrop-blur-md text-slate-600 transition-all hover:bg-white cursor-default">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+            Introducing BizAnalytics 2.0 with AI Insights <span className="text-slate-300 mx-1">|</span> <span className="text-indigo-600 font-semibold cursor-pointer hover:underline">Read the announcement &rarr;</span>
+          </motion.div>
 
-        <div className="max-w-5xl mx-auto relative">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-8" style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(139,92,246,0.3)", color: "#a5b4fc" }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse-dot" />
-            Now with AI-generated executive insights  ✦  v2.0
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
-            Turn Raw Sales Data
+          <motion.h1 variants={fadeInUp} className="text-[56px] md:text-[84px] font-[800] text-slate-900 mb-8 leading-[1.05] tracking-[-0.04em] font-['Inter',sans-serif]">
+            Turn complex data into
             <br />
             <span
-              className="glow-text-violet"
-              style={{ background: "linear-gradient(135deg, #818cf8 0%, #a78bfa 30%, #ec4899 60%, #34d399 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+              className="animate-gradient bg-[length:200%_auto]"
+              style={{ background: "linear-gradient(to right, #4f46e5, #ec4899, #f59e0b, #4f46e5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
             >
-              Into Powerful Insights
+              beautiful insights.
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed font-light">
-            BizAnalytics transforms messy CSVs into stunning interactive dashboards,
-            KPI metrics, and board-ready executive reports — in seconds.
-          </p>
+          <motion.p variants={fadeInUp} className="text-[18px] md:text-[21px] text-slate-500 mb-12 max-w-2xl mx-auto leading-[1.6] font-normal tracking-[-0.01em]">
+            The complete analytics platform for modern teams. Drop any CSV, build stunning interactive dashboards, and generate board-ready reports in seconds.
+          </motion.p>
 
-          <div className="flex items-center justify-center gap-4 flex-wrap mb-6">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link
               to="/auth"
-              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl text-white font-bold text-sm transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa)", boxShadow: "0 0 40px rgba(99,102,241,0.45), 0 0 80px rgba(99,102,241,0.15)" }}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full text-white font-medium text-[16px] transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-[0_8px_30px_rgba(79,70,229,0.3)] animate-gradient bg-[length:200%_auto]"
+              style={{ background: "linear-gradient(to right, #4f46e5, #a855f7, #ec4899, #4f46e5)" }}
             >
-              Get Started Free
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+              Start Building Free
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
             </Link>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-bold text-sm transition-all hover:bg-white/6 hover:text-white"
-              style={{ border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8" }}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-medium text-[16px] transition-all duration-300 hover:bg-slate-50 hover:-translate-y-1 text-slate-700 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-slate-200/80 hover:border-slate-300 group"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-              View Live Demo
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 group-hover:text-indigo-600 transition-colors"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+              View live demo
             </Link>
-          </div>
+          </motion.div>
+        </motion.div>
 
-          <p className="text-xs text-slate-600">No credit card required · Free 14-day trial · Cancel anytime</p>
-        </div>
+        {/* ── Dashboard mockup with 3D Mouse Parallax ── */}
+        <motion.div 
+          className="mt-16 max-w-[1100px] mx-auto relative z-10"
+          initial={{ opacity: 0, y: 60, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.5, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          style={{ perspective: 2000 }}
+        >
+          <div className="absolute inset-0 rounded-[32px] opacity-20 blur-[80px]" style={{ background: "linear-gradient(135deg, #4f46e5, #ec4899)" }} />
 
-        {/* ── Dashboard mockup ──────────────────────────── */}
-        <div className="mt-20 max-w-6xl mx-auto relative animate-float">
-          {/* Halo */}
-          <div className="absolute inset-0 rounded-3xl opacity-25 blur-2xl" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899, #10b981)" }} />
-
-          <div
-            className="relative rounded-3xl overflow-hidden"
+          <motion.div
+            className="relative rounded-[24px] overflow-hidden bg-white/40 backdrop-blur-xl border border-white/60 p-2"
             style={{
-              transform: "perspective(1400px) rotateX(4deg) rotateY(-1.5deg)",
-              boxShadow: "0 50px 130px rgba(0,0,0,0.7), 0 0 0 1px rgba(139,92,246,0.15)",
-              background: "rgba(6,5,15,0.97)",
+              rotateX,
+              rotateY,
+              boxShadow: "0 35px 60px -15px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.05)",
             }}
           >
-            {/* Fake browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(139,92,246,0.1)", background: "rgba(12,9,28,0.98)" }}>
-              <div className="flex gap-1.5">
-                <span className="w-3 h-3 rounded-full" style={{ background: "#f43f5e", boxShadow: "0 0 6px rgba(244,63,94,0.5)" }} />
-                <span className="w-3 h-3 rounded-full" style={{ background: "#f59e0b", boxShadow: "0 0 6px rgba(245,158,11,0.5)" }} />
-                <span className="w-3 h-3 rounded-full" style={{ background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.5)" }} />
-              </div>
-              <div className="mx-auto flex items-center gap-2 px-4 py-1 rounded-md text-xs text-slate-600" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                bizanalytics.app/dashboard
-              </div>
-            </div>
-
-            {/* Mock content */}
-            <div className="p-4 space-y-3" style={{ background: "rgba(6,5,15,0.97)" }}>
-              {/* KPI row */}
-              <div className="grid grid-cols-4 gap-3">
-                {mockKPIs.map((kpi) => (
-                  <div key={kpi.label} className="rounded-xl p-3 relative overflow-hidden" style={{ background: `${kpi.color}0f`, border: `1px solid ${kpi.color}20` }}>
-                    <div className="absolute -right-3 -top-3 w-12 h-12 rounded-full blur-xl opacity-30" style={{ background: kpi.color }} />
-                    <p className="text-xs mb-1" style={{ color: "#475569" }}>{kpi.label}</p>
-                    <p className="text-base font-extrabold" style={{ color: kpi.color }}>{kpi.value}</p>
-                    <span className="text-xs font-bold" style={{ color: kpi.up ? "#34d399" : "#fb7185" }}>{kpi.up ? "▲" : "▼"} {kpi.change}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chart mockup */}
-              <div className="rounded-xl p-4" style={{ background: "rgba(15,12,30,0.8)", border: "1px solid rgba(139,92,246,0.1)" }}>
-                <div className="flex items-end gap-1.5 h-20 mb-2">
-                  {[40,55,48,71,63,89,94,112,98,128,145,163].map((v, i) => (
-                    <div key={i} className="flex-1 rounded-t-md" style={{
-                      height: `${(v / 163) * 100}%`,
-                      background: i === 11
-                        ? "linear-gradient(to top, #6366f1, #a78bfa)"
-                        : i > 8
-                        ? `rgba(99,102,241,${0.25 + i * 0.04})`
-                        : "rgba(99,102,241,0.18)",
-                      boxShadow: i === 11 ? "0 0 12px rgba(99,102,241,0.5)" : "none",
-                    }} />
-                  ))}
+            <div className="rounded-[18px] overflow-hidden bg-[#0A0A0A] border border-white/10 shadow-2xl relative">
+              <div className="flex items-center gap-3 px-5 py-4 bg-[#111] border-b border-white/5">
+                <div className="flex gap-2">
+                  <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]" />
+                  <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
+                  <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]" />
                 </div>
-                <div className="flex justify-between">
-                  {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((m) => (
-                    <span key={m} className="text-xs" style={{ color: "#334155", fontFamily: "'JetBrains Mono', monospace" }}>{m}</span>
-                  ))}
+                <div className="mx-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-medium text-white/40 bg-white/5 border border-white/5 min-w-[200px]">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                  bizanalytics.app/dashboard
                 </div>
               </div>
 
-              {/* Mini table */}
-              <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(139,92,246,0.08)" }}>
-                {[
-                  { id: "TXN-8821", name: "Marcus Chen",  amt: "$2,490", status: "Completed", sc: "#34d399" },
-                  { id: "TXN-8820", name: "Sarah Jenkins", amt: "$1,120", status: "Pending",   sc: "#fbbf24" },
-                ].map((row, i) => (
-                  <div key={row.id} className="flex items-center gap-4 px-4 py-2.5" style={{ borderBottom: i === 0 ? "1px solid rgba(255,255,255,0.04)" : "none", background: "rgba(12,9,28,0.7)" }}>
-                    <span className="text-xs font-bold" style={{ color: "#818cf8", fontFamily: "'JetBrains Mono', monospace" }}>{row.id}</span>
-                    <span className="text-xs text-slate-400 flex-1">{row.name}</span>
-                    <span className="text-xs font-bold text-white" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{row.amt}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${row.sc}15`, color: row.sc, border: `1px solid ${row.sc}25` }}>{row.status}</span>
-                  </div>
-                ))}
+              <div className="bg-[#0A0A0A] relative group">
+                <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <img 
+                  src="/dashboard-mockup.png" 
+                  alt="BizAnalytics Dashboard Mockup" 
+                  className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-1000" 
+                />
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Stats strip ──────────────────────────────────── */}
-      <section className="py-16 px-6" style={{ borderTop: "1px solid rgba(139,92,246,0.1)", borderBottom: "1px solid rgba(139,92,246,0.1)" }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <p className="text-4xl font-black mb-1" style={{ color: s.color, textShadow: `0 0 30px ${s.color}60` }}>{s.value}</p>
-              <p className="text-sm text-slate-500 font-medium">{s.label}</p>
-            </div>
-          ))}
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* ── Features grid ────────────────────────────────── */}
-      <section className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#8b5cf6" }}>Platform Features</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-5 leading-tight">
-              Everything you need
-              <br />
-              <span className="grad-violet">to lead with data</span>
+      <section className="py-28 px-6 relative z-10 bg-[#FAFAFA] border-t border-slate-200/50">
+        <motion.div 
+          className="max-w-7xl mx-auto"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} className="text-center mb-20">
+            <h2 className="text-[40px] md:text-[48px] font-[800] text-slate-900 mb-6 leading-tight tracking-[-0.03em]">
+              Everything you need to scale
             </h2>
-            <p className="text-slate-500 max-w-xl mx-auto leading-relaxed">
-              From raw import to polished report — every tool you need is already here.
+            <p className="text-[18px] text-slate-500 max-w-2xl mx-auto leading-relaxed font-normal">
+              A complete toolkit designed to eliminate manual reporting. Beautiful by default, powerful by design.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((f) => (
-              <div
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => (
+              <motion.div
+                variants={fadeInUp}
                 key={f.title}
-                className="glass card-hover gradient-border rounded-2xl p-6 relative overflow-hidden group"
-                style={{ border: `1px solid ${f.color}18` }}
+                className="bg-white rounded-[20px] p-8 relative overflow-hidden group hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-500 border border-slate-200/60"
               >
-                <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full blur-2xl opacity-10 transition-opacity group-hover:opacity-25 pointer-events-none"
-                  style={{ background: f.color }} />
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 text-2xl transition-transform group-hover:scale-110"
-                  style={{ background: `${f.color}15`, border: `1px solid ${f.color}25` }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center mb-6 text-slate-700 bg-slate-50 border border-slate-100 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:scale-110 transition-all duration-300 shadow-sm group-hover:shadow-md">
                   {f.icon}
                 </div>
-                <h3 className="font-bold text-white mb-2 text-sm">{f.title}</h3>
-                <p className="text-sm leading-relaxed text-slate-500">{f.desc}</p>
-              </div>
+                <h3 className="relative z-10 font-semibold text-slate-900 mb-3 text-[18px] tracking-tight group-hover:text-indigo-600 transition-colors">{f.title}</h3>
+                <p className="relative z-10 text-[15px] leading-relaxed text-slate-500 font-normal">{f.desc}</p>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
-
-      {/* ── CTA section ──────────────────────────────────── */}
-      <section className="py-20 px-6">
-        <div
-          className="max-w-3xl mx-auto text-center rounded-3xl p-14 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08), rgba(16,185,129,0.06))", border: "1px solid rgba(139,92,246,0.2)" }}
-        >
-          <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 30% 20%, #6366f1, transparent 55%), radial-gradient(circle at 70% 80%, #10b981, transparent 55%)" }} />
-          <p className="text-xs font-black uppercase tracking-widest mb-3 relative" style={{ color: "#8b5cf6" }}>Ready to ship?</p>
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-5 relative leading-tight">
-            Transform your data<br />
-            <span className="grad-rainbow">starting today</span>
-          </h2>
-          <p className="text-slate-500 mb-10 relative">Join 850+ companies already making smarter decisions with BizAnalytics.</p>
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl text-white font-black text-sm transition-all hover:scale-105 relative"
-            style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa)", boxShadow: "0 0 50px rgba(99,102,241,0.5), 0 0 100px rgba(99,102,241,0.2)" }}
-          >
-            Start for free — no credit card required
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-          </Link>
-        </div>
-      </section>
-
-      {/* ── Footer ───────────────────────────────────────── */}
-      <footer className="px-6 py-8 text-center" style={{ borderTop: "1px solid rgba(139,92,246,0.08)" }}>
-        <p className="text-sm text-slate-600">
-          Designed &amp; Developed by{" "}
-          <span className="font-bold grad-violet">S.D. Tasuntha</span>
-          <span className="mx-3 text-slate-700">·</span>
-          <a href="#" className="hover:text-slate-400 transition-colors text-slate-600">GitHub</a>
-          <span className="mx-3 text-slate-700">·</span>
-          <a href="#" className="hover:text-slate-400 transition-colors text-slate-600">Documentation</a>
-          <span className="mx-3 text-slate-700">·</span>
-          <a href="#" className="hover:text-slate-400 transition-colors text-slate-600">Privacy Policy</a>
-        </p>
-      </footer>
+      
     </div>
   );
 }

@@ -22,7 +22,7 @@ export const getProfile = () => api.get('/auth/me');
 
 export const uploadCSV = (file) => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('csvFile', file);
   return api.post('/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

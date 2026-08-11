@@ -1,9 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const multer = require('multer');
-const csv = require('csv-parser');
-const fs = require('fs');
-const path = require('path');
+
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 const db = require('./db');
@@ -23,8 +20,15 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Mount API routes
-const apiRoutes = require('./routes/api');
-app.use('/api', apiRoutes);
+const authRoutes = require('./routes/auth');
+const uploadRoutes = require('./routes/upload');
+const analyticsRoutes = require('./routes/analytics');
+const salesRoutes = require('./routes/sales');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/sales', salesRoutes);
 
 // Test DB Connection
 app.get('/api/health', async (req, res) => {
@@ -38,5 +42,5 @@ app.get('/api/health', async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`🚀 Server is running on http://localhost:${port}`);
 });
