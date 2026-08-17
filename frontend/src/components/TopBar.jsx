@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const TopBar = ({ user, onLogout, activeSubTab }) => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -34,12 +34,6 @@ const TopBar = ({ user, onLogout, activeSubTab }) => {
     }
   };
 
-  const handleTabClick = (tab) => {
-    if (tab === 'Overview') navigate('/dashboard/analytics');
-    else if (tab === 'Team') navigate('/dashboard/team');
-    else if (tab === 'Integrations') navigate('/dashboard/integrations');
-  };
-
   return (
     <div className="topbar">
       {/* Search */}
@@ -58,14 +52,18 @@ const TopBar = ({ user, onLogout, activeSubTab }) => {
       {/* Tabs - Only show on Overview/Team/Integrations pages */}
       {activeSubTab && (
         <div className="topbar-tabs">
-          {['Overview', 'Team', 'Integrations'].map(tab => (
-            <button
-              key={tab}
-              className={`topbar-tab ${activeSubTab === tab ? 'active' : ''}`}
-              onClick={() => handleTabClick(tab)}
+          {[
+            { name: 'Overview', path: '/dashboard/analytics' },
+            { name: 'Team', path: '/dashboard/team' },
+            { name: 'Integrations', path: '/dashboard/integrations' }
+          ].map(tab => (
+            <Link
+              key={tab.name}
+              to={tab.path}
+              className={`topbar-tab flex items-center justify-center text-decoration-none ${activeSubTab === tab.name ? 'active' : ''}`}
             >
-              {tab}
-            </button>
+              {tab.name}
+            </Link>
           ))}
         </div>
       )}
