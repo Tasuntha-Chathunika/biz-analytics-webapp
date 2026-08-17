@@ -109,7 +109,19 @@ function App() {
             <Sidebar user={user} />
             <div className="main-area">
               <TopBar user={user} onLogout={handleLogout} activeSubTab={activeSubTab} />
-              <main className="main-content">
+              <main className="main-content relative">
+                {location.pathname !== '/dashboard' && location.pathname !== '/dashboard/' && location.pathname !== '/dashboard/analytics' && (
+                  <button 
+                    onClick={() => navigate(-1)}
+                    className="mb-4 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-slate-200/60 w-fit shadow-sm hover:shadow"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="19" y1="12" x2="5" y2="12"></line>
+                      <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Back
+                  </button>
+                )}
                 <Routes>
                    <Route path="/" element={
                      (!dataLoaded && user.role === 'admin') 
