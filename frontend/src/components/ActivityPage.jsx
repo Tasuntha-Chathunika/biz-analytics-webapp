@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { transactions } from "../mockData";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { getSales, uploadCSV } from "../api/api";
 
 const categories = ["All", "Electronics", "Fashion", "Software", "Home & Garden", "Sports"];
 
@@ -16,37 +16,130 @@ export default function ActivityPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [uploadFile, setUploadFile] = useState(null);
+  const [uploadResult, setUploadResult] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [page, setPage] = useState(1);
+  const [transactions, setTransactions] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const dropRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const simulateUpload = (name) => {
-    setUploadFile(name);
-    setUploadProgress(0);
-    let p = 0;
-    const iv = setInterval(() => {
-      p += Math.random() * 18 + 4;
-      if (p >= 100) { p = 100; clearInterval(iv); setTimeout(() => { setUploadProgress(null); setUploadFile(null); }, 2000); }
-      setUploadProgress(Math.min(p, 100));
-    }, 120);
+  // Fetch real transactions from backend
+  const fetchTransactions = useCallback(async (targetPage, searchTerm) => {
+    try {
+      setLoading(true);
+      const res = await getSales(targetPage, PAGE_SIZE, searchTerm);
+      const rows = res.data.data.map((r, i) => ({
+        id: `TX-${String(((targetPage - 1) * PAGE_SIZE) + i + 1001).padStart(4, '0')}`,
+        date: r.transaction_date?.substring(0, 10) || '',
+        customer: r.region || 'Unknown',
+        product: r.product_name || r.category || '-',
+        category: r.category || '-',
+        unitPrice: r.quantity_sold > 0 ? (Number(r.revenue) / r.quantity_sold).toFixed(2) : '0.00',
+        quantity: r.quantity_sold || 1,
+        total: Number(r.revenue),
+        status: Number(r.revenue) >= 500 ? 'Completed' : Number(r.revenue) >= 200 ? 'Processing' : 'Pending',
+      }));
+      setTransactions(rows);
+      setTotalCount(res.data.pagination.totalCount);
+    } catch (err) {
+      console.error('Failed to fetch transactions:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      fetchTransactions(page, search);
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [page, search, fetchTransactions]);
+
+  // Real file upload using backend API
+  const handleUpload = async (file) => {
+    if (!file) return;
+    if (!file.name.endsWith('.csv')) {
+      setUploadResult({ error: true, message: 'Only CSV files are supported.' });
+      return;
+    }
+    setUploadFile(file.name);
+    setUploadProgress(10);
+    setUploadResult(null);
+
+    try {
+      // Simulate progress stages while actual upload happens
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 85) { clearInterval(progressInterval); return 85; }
+          return prev + Math.random() * 15 + 5;
+        });
+      }, 200);
+
+      const res = await uploadCSV(file);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadResult({ error: false, message: `Upload successful — ${res.data.rowsProcessed} rows processed.` });
+
+      // Refresh the transactions table
+      setTimeout(() => {
+        fetchTransactions(1, search);
+        setPage(1);
+      }, 1000);
+
+      // Clear upload state after showing success
+      setTimeout(() => {
+        setUploadProgress(null);
+        setUploadFile(null);
+        setUploadResult(null);
+      }, 4000);
+    } catch (err) {
+      setUploadProgress(null);
+      setUploadFile(null);
+      setUploadResult({ error: true, message: err.response?.data?.error || 'Upload failed. Please try again.' });
+      setTimeout(() => setUploadResult(null), 5000);
+    }
   };
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) simulateUpload(file.name);
+    if (file) handleUpload(file);
   }, []);
 
-  const filtered = transactions.filter((tx) => {
-    const matchSearch = search === "" || tx.product.toLowerCase().includes(search.toLowerCase()) || tx.id.toLowerCase().includes(search.toLowerCase()) || tx.customer.toLowerCase().includes(search.toLowerCase());
-    const matchCat = categoryFilter === "All" || tx.category === categoryFilter;
-    return matchSearch && matchCat;
-  });
+  const handleFileInput = (e) => {
+    const f = e.target.files?.[0];
+    if (f) handleUpload(f);
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  };
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Client-side category filter (since backend doesn't have category filter endpoint)
+  const filtered = categoryFilter === "All"
+    ? transactions
+    : transactions.filter(tx => tx.category === categoryFilter);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  // Export CSV function
+  const handleExportCSV = () => {
+    if (transactions.length === 0) return;
+    const headers = ["Transaction ID", "Date", "Region", "Product", "Category", "Unit Price", "Qty", "Total", "Status"];
+    const csvRows = [headers.join(",")];
+    filtered.forEach(tx => {
+      csvRows.push([tx.id, tx.date, tx.customer, `"${tx.product}"`, tx.category, tx.unitPrice, tx.quantity, tx.total, tx.status].join(","));
+    });
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `activity-export-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-5 pb-4">
@@ -73,16 +166,16 @@ export default function ActivityPage() {
           </svg>
         </div>
         <h3 className="font-semibold text-white mb-1">{isDragging ? "Drop your file here" : "Drag & Drop your data file"}</h3>
-        <p className="text-sm mb-4" style={{ color: "#64748b" }}>Supports CSV and XLSX formats up to 50MB</p>
+        <p className="text-sm mb-4" style={{ color: "#64748b" }}>Upload CSV files to add sales records to your database</p>
         <div className="flex items-center justify-center gap-2 mb-5">
-          {[".CSV", ".XLSX", ".TSV"].map((fmt) => (
+          {[".CSV"].map((fmt) => (
             <span key={fmt} className="text-xs px-2.5 py-1 rounded-md font-semibold" style={{ background: "rgba(99,102,241,0.1)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.2)", fontFamily: "'JetBrains Mono', monospace" }}>{fmt}</span>
           ))}
         </div>
         <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white cursor-pointer transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
           Browse Files
-          <input type="file" accept=".csv,.xlsx,.tsv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) simulateUpload(f.name); }} />
+          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileInput} />
         </label>
       </div>
 
@@ -107,10 +200,26 @@ export default function ActivityPage() {
                 />
               </div>
               <p className="text-xs mt-1" style={{ color: "#64748b" }}>
-                {uploadProgress === 100 ? "450 rows detected — data is ready" : "Parsing CSV data..."}
+                {uploadProgress === 100 ? "Data uploaded successfully" : "Uploading and processing CSV data..."}
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Upload result toast */}
+      {uploadResult && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium" style={{
+          background: uploadResult.error ? "rgba(244,63,94,0.1)" : "rgba(16,185,129,0.1)",
+          color: uploadResult.error ? "#fb7185" : "#34d399",
+          border: `1px solid ${uploadResult.error ? "rgba(244,63,94,0.2)" : "rgba(16,185,129,0.2)"}`,
+        }}>
+          {uploadResult.error ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+          )}
+          {uploadResult.message}
         </div>
       )}
 
@@ -121,7 +230,7 @@ export default function ActivityPage() {
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             <input
               type="text"
-              placeholder="Search by product, ID, or customer..."
+              placeholder="Search by region, product, or category..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="w-full pl-9 pr-4 py-2 rounded-lg text-sm text-slate-300 placeholder-slate-600 outline-none transition-all"
@@ -130,13 +239,18 @@ export default function ActivityPage() {
           </div>
           <select
             value={categoryFilter}
-            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+            onChange={(e) => { setCategoryFilter(e.target.value); }}
             className="px-3 py-2 rounded-lg text-sm text-slate-300 outline-none transition-all"
             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8" }}
           >
             {categories.map((c) => <option key={c} value={c} style={{ background: "#0f172a" }}>{c}</option>)}
           </select>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-300 transition-all hover:text-white hover:bg-white/5" style={{ border: "1px solid rgba(255,255,255,0.1)", marginLeft: "auto" }}>
+          <button
+            onClick={handleExportCSV}
+            disabled={transactions.length === 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-300 transition-all hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ border: "1px solid rgba(255,255,255,0.1)", marginLeft: "auto" }}
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             Export CSV
           </button>
@@ -153,10 +267,17 @@ export default function ActivityPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.length === 0 ? (
-                <tr><td colSpan={9} className="text-center py-12 text-slate-600">No records match your filters</td></tr>
-              ) : paginated.map((tx, i) => (
-                <tr key={tx.id} className="transition-colors hover:bg-white/[0.02]" style={{ borderBottom: i < paginated.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}>
+              {loading ? (
+                <tr><td colSpan={9} className="text-center py-12 text-slate-600">
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                    Loading transactions...
+                  </div>
+                </td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={9} className="text-center py-12 text-slate-600">No records found. Upload a CSV file to get started.</td></tr>
+              ) : filtered.map((tx, i) => (
+                <tr key={tx.id + i} className="transition-colors hover:bg-white/[0.02]" style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}>
                   <td className="px-5 py-3.5">
                     <span className="text-xs font-medium" style={{ color: "#6366f1", fontFamily: "'JetBrains Mono', monospace" }}>{tx.id}</span>
                   </td>
@@ -185,25 +306,33 @@ export default function ActivityPage() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <p className="text-xs" style={{ color: "#475569" }}>
-            Showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} records
+            {totalCount > 0
+              ? `Showing ${Math.min((page - 1) * PAGE_SIZE + 1, totalCount)}–${Math.min(page * PAGE_SIZE, totalCount)} of ${totalCount} records`
+              : 'No records'}
           </p>
           <div className="flex gap-1">
-            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-xs text-slate-400 transition-colors disabled:opacity-30 hover:bg-white/5">← Prev</button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
-                style={{
-                  background: page === p ? "rgba(99,102,241,0.25)" : "transparent",
-                  color: page === p ? "#a5b4fc" : "#64748b",
-                  border: page === p ? "1px solid rgba(99,102,241,0.3)" : "1px solid transparent",
-                }}
-              >
-                {p}
-              </button>
-            ))}
-            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-lg text-xs text-slate-400 transition-colors disabled:opacity-30 hover:bg-white/5">Next →</button>
+            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1 || loading} className="px-3 py-1.5 rounded-lg text-xs text-slate-400 transition-colors disabled:opacity-30 hover:bg-white/5">← Prev</button>
+            {totalPages <= 7 ? (
+              Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    background: page === p ? "rgba(99,102,241,0.25)" : "transparent",
+                    color: page === p ? "#a5b4fc" : "#64748b",
+                    border: page === p ? "1px solid rgba(99,102,241,0.3)" : "1px solid transparent",
+                  }}
+                >
+                  {p}
+                </button>
+              ))
+            ) : (
+              <span className="text-xs text-slate-500 px-2 py-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                Page {page} of {totalPages}
+              </span>
+            )}
+            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages || loading} className="px-3 py-1.5 rounded-lg text-xs text-slate-400 transition-colors disabled:opacity-30 hover:bg-white/5">Next →</button>
           </div>
         </div>
       </div>

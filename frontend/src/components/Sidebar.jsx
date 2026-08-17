@@ -1,10 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 
 const Sidebar = ({ user }) => {
   const location = useLocation();
   const pathParts = location.pathname.split('/').filter(Boolean);
   // Default to dashboard if we are at exactly /dashboard
   const activeTab = pathParts.length > 1 ? pathParts[1] : 'dashboard';
+  const [upgradeToast, setUpgradeToast] = useState(false);
+
+  const handleUpgrade = () => {
+    setUpgradeToast(true);
+    setTimeout(() => setUpgradeToast(false), 3000);
+  };
+
 
   const navItems = [
     {
@@ -178,13 +186,21 @@ const Sidebar = ({ user }) => {
           
           <button 
             className="relative w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden"
-            onClick={() => alert('Redirecting to Pro Plan upgrade...')}
+            onClick={handleUpgrade}
           >
             Upgrade Plan
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
           </button>
         </div>
       </div>
+
+      {/* Upgrade Toast */}
+      {upgradeToast && (
+        <div className="fixed bottom-6 left-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 text-white text-sm font-medium shadow-lg" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+          Pro upgrade coming soon! Stay tuned.
+        </div>
+      )}
     </aside>
   );
 };

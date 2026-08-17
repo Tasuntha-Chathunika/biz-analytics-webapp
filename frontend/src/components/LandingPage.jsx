@@ -138,7 +138,7 @@ export default function LandingPage() {
 
             <div className="hidden md:flex items-center gap-8">
               {["Product", "Solutions", "Developers", "Resources", "Pricing"].map((item) => (
-                <a key={item} href="#" className="text-[14px] font-medium text-slate-600 hover:text-indigo-600 transition-colors">{item}</a>
+                <a key={item} href="#features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }} className="text-[14px] font-medium text-slate-600 hover:text-indigo-600 transition-colors">{item}</a>
               ))}
             </div>
           </div>
@@ -239,11 +239,26 @@ export default function LandingPage() {
 
               <div className="bg-[#0A0A0A] relative group">
                 <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                <img 
-                  src="/dashboard-mockup.png" 
-                  alt="BizAnalytics Dashboard Mockup" 
-                  className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-1000" 
-                />
+                <div className="w-full aspect-[16/9] relative overflow-hidden">
+                  <img 
+                    src="/dashboard-mockup.png" 
+                    alt="BizAnalytics Dashboard Mockup" 
+                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-1000" 
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
+                  />
+                  <div className="w-full h-full items-center justify-center hidden" style={{ background: 'linear-gradient(135deg, #0f172a, #1e1b4b)' }}>
+                    <div className="text-center px-8">
+                      <div className="flex justify-center gap-4 mb-6">
+                        <div className="w-16 h-24 rounded-lg" style={{ background: 'linear-gradient(to top, #6366f1, #818cf8)', opacity: 0.8 }} />
+                        <div className="w-16 h-32 rounded-lg" style={{ background: 'linear-gradient(to top, #10b981, #34d399)', opacity: 0.8 }} />
+                        <div className="w-16 h-20 rounded-lg" style={{ background: 'linear-gradient(to top, #8b5cf6, #a78bfa)', opacity: 0.8 }} />
+                        <div className="w-16 h-28 rounded-lg" style={{ background: 'linear-gradient(to top, #f59e0b, #fbbf24)', opacity: 0.8 }} />
+                      </div>
+                      <p className="text-white/60 text-sm font-medium">Interactive Analytics Dashboard</p>
+                      <p className="text-white/30 text-xs mt-1">Sign in to explore your data →</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -251,7 +266,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features grid ────────────────────────────────── */}
-      <section className="py-28 px-6 relative z-10 bg-[#FAFAFA] border-t border-slate-200/50">
+      <section id="features" className="py-28 px-6 relative z-10 bg-[#FAFAFA] border-t border-slate-200/50">
         <motion.div 
           className="max-w-7xl mx-auto"
           initial="hidden"

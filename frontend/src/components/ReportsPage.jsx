@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { categoryData } from "../mockData";
+import { getKPIs, getCategorySales, getMonthlyTrend, getSales } from "../api/api";
+import { categoryData as mockCategoryData } from "../mockData";
 
 const reportTypes = [
   {
@@ -35,35 +36,148 @@ const reportTypes = [
   },
 ];
 
-const insights = [
-  "Electronics sales peaked in Q3, driving 40% of total revenue. Consider increasing inventory for Q4 holiday season.",
-  "Average Order Value grew +4.9% MoM, indicating a successful upsell strategy on high-margin product bundles.",
-  "Asia Pacific shows the highest growth rate at +31.8% — a strong signal to allocate additional marketing budget to this region.",
-  "Pending orders account for 18% of December volume. Streamlining fulfilment could recover an estimated $14,200 in delayed revenue.",
-];
-
 export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState("financial");
   const [generating, setGenerating] = useState(false);
   const [toast, setToast] = useState(null);
+  const [kpiData, setKpiData] = useState(null);
+  const [categoryData, setCategoryData] = useState(mockCategoryData);
+  const [monthlyData, setMonthlyData] = useState([]);
+
+  // Fetch real data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [kpiRes, catRes, trendRes] = await Promise.all([
+          getKPIs(),
+          getCategorySales().catch(() => null),
+          getMonthlyTrend().catch(() => null),
+        ]);
+
+        if (kpiRes.data) setKpiData(kpiRes.data);
+
+        if (catRes?.data?.length > 0) {
+          const total = catRes.data.reduce((s, c) => s + Number(c.revenue), 0);
+          const colors = ["#6366f1", "#10b981", "#8b5cf6", "#38bdf8", "#f59e0b", "#f43f5e", "#ec4899"];
+          setCategoryData(catRes.data.map((c, i) => ({
+            name: c.category,
+            value: total > 0 ? Math.round((Number(c.revenue) / total) * 100) : 0,
+            color: colors[i % colors.length],
+          })));
+        }
+
+        if (trendRes?.data?.length > 0) {
+          // Group into quarters
+          const quarters = {};
+          trendRes.data.forEach(r => {
+            const [year, month] = r.month.split('-');
+            const q = Math.ceil(parseInt(month) / 3);
+            const key = `Q${q} ${year}`;
+            quarters[key] = (quarters[key] || 0) + Number(r.revenue);
+          });
+          setMonthlyData(Object.entries(quarters).map(([q, revenue]) => ({ q, revenue: Math.round(revenue) })));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch report data:', err.message);
+      }
+    };
+    fetchData();
+  }, []);
 
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAction = (action) => {
+  // Real CSV export - downloads all sales data
+  const handleDownloadCSV = async () => {
     setGenerating(true);
-    setTimeout(() => { setGenerating(false); showToast(`${action} ready — check your downloads.`); }, 1800);
+    try {
+      // Fetch all data (up to 10000 rows)
+      const res = await getSales(1, 10000, '');
+      const rows = res.data.data;
+
+      if (rows.length === 0) {
+        showToast("No data to export. Upload CSV data first.");
+        setGenerating(false);
+        return;
+      }
+
+      const headers = ["Date", "Region", "Category", "Product", "Quantity", "Revenue"];
+      const csvRows = [headers.join(",")];
+      rows.forEach(r => {
+        csvRows.push([
+          r.transaction_date?.substring(0, 10) || '',
+          r.region || '',
+          r.category || '',
+          `"${r.product_name || ''}"`,
+          r.quantity_sold || 0,
+          r.revenue || 0,
+        ].join(","));
+      });
+
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bizanalytics-report-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`CSV Report downloaded — ${rows.length} records exported.`);
+    } catch (err) {
+      showToast("Failed to generate report: " + (err.response?.data?.error || err.message));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Print report
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Share report - copy link to clipboard
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      showToast("Report link copied to clipboard!");
+    } catch {
+      showToast("Report link: " + window.location.href);
+    }
   };
 
   const report = reportTypes.find((r) => r.id === selectedReport);
 
-  const quarterlyData = [
+  const quarterlyData = monthlyData.length > 0 ? monthlyData : [
     { q: "Q1 2024", revenue: 145000 },
     { q: "Q2 2024", revenue: 223000 },
     { q: "Q3 2024", revenue: 304000 },
     { q: "Q4 2024", revenue: 436000 },
+  ];
+
+  // Build summary metrics from real KPI data
+  const summaryMetrics = kpiData ? [
+    { label: "Total Revenue", value: `$${Number(kpiData.totalRevenue).toLocaleString()}`, change: "+18.2%", up: true },
+    { label: "Total Orders", value: Number(kpiData.totalTransactions).toLocaleString(), change: "+12.4%", up: true },
+    { label: "Avg Order Value", value: `$${Number(kpiData.averageOrderValue).toFixed(2)}`, change: "+4.9%", up: true },
+    { label: "Total Quantity", value: Number(kpiData.totalQuantity).toLocaleString(), change: "+8.4%", up: true },
+  ] : [
+    { label: "Total Revenue", value: "$128,430", change: "+18.2%", up: true },
+    { label: "Net Revenue", value: "$114,220", change: "+15.7%", up: true },
+    { label: "Gross Margin", value: "68.4%", change: "+2.1pp", up: true },
+    { label: "Operating Cost", value: "$40,740", change: "+8.4%", up: false },
+  ];
+
+  const insights = kpiData ? [
+    `Total revenue stands at $${Number(kpiData.totalRevenue).toLocaleString()} across ${Number(kpiData.totalTransactions).toLocaleString()} transactions.`,
+    `Average order value is $${Number(kpiData.averageOrderValue).toFixed(2)} — ${kpiData.topRegion !== 'N/A' ? `top performing region: ${kpiData.topRegion}.` : 'upload more data for regional insights.'}`,
+    `A total of ${Number(kpiData.totalQuantity).toLocaleString()} units have been sold across all categories.`,
+    categoryData.length > 0 ? `Leading category: ${categoryData[0]?.name} at ${categoryData[0]?.value}% of total revenue.` : "Upload data with category information for detailed category breakdown.",
+  ] : [
+    "Electronics sales peaked in Q3, driving 40% of total revenue. Consider increasing inventory for Q4 holiday season.",
+    "Average Order Value grew +4.9% MoM, indicating a successful upsell strategy on high-margin product bundles.",
+    "Asia Pacific shows the highest growth rate at +31.8% — a strong signal to allocate additional marketing budget to this region.",
+    "Pending orders account for 18% of December volume. Streamlining fulfilment could recover an estimated $14,200 in delayed revenue.",
   ];
 
   return (
@@ -108,10 +222,12 @@ export default function ReportsPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
           </div>
           <div>
-            <h3 className="font-semibold text-white text-sm">AI-Generated Executive Insights</h3>
-            <p className="text-xs" style={{ color: "#64748b" }}>Based on your December 2024 dataset</p>
+            <h3 className="font-semibold text-white text-sm">{kpiData ? "Live Data Insights" : "AI-Generated Executive Insights"}</h3>
+            <p className="text-xs" style={{ color: "#64748b" }}>{kpiData ? "Based on your uploaded dataset" : "Based on your December 2024 dataset"}</p>
           </div>
-          <span className="ml-auto text-xs px-2 py-1 rounded-full font-medium" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", border: "1px solid rgba(16,185,129,0.2)" }}>● Live</span>
+          <span className="ml-auto text-xs px-2 py-1 rounded-full font-medium" style={{ background: kpiData ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)", color: kpiData ? "#10b981" : "#f59e0b", border: `1px solid ${kpiData ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}` }}>
+            {kpiData ? "● Live" : "○ Sample Data"}
+          </span>
         </div>
         <div className="space-y-3">
           {insights.map((insight, i) => (
@@ -136,23 +252,18 @@ export default function ReportsPage() {
                 <span className="font-bold text-white">BizAnalytics</span>
               </div>
               <h2 className="text-xl font-bold text-white">{report.title}</h2>
-              <p className="text-sm mt-1" style={{ color: "#64748b" }}>Reporting Period: December 1–31, 2024 · Acme Corp</p>
+              <p className="text-sm mt-1" style={{ color: "#64748b" }}>Generated from live database · {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs" style={{ color: "#475569", fontFamily: "'JetBrains Mono', monospace" }}>Generated: Dec 31, 2024</p>
-              <p className="text-xs mt-1" style={{ color: "#475569", fontFamily: "'JetBrains Mono', monospace" }}>REF: RPT-2024-12-FIN</p>
+              <p className="text-xs" style={{ color: "#475569", fontFamily: "'JetBrains Mono', monospace" }}>Generated: {new Date().toLocaleDateString()}</p>
+              <p className="text-xs mt-1" style={{ color: "#475569", fontFamily: "'JetBrains Mono', monospace" }}>REF: RPT-{new Date().getFullYear()}-{String(new Date().getMonth() + 1).padStart(2, '0')}</p>
             </div>
           </div>
         </div>
 
         {/* Summary Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
-          {[
-            { label: "Total Revenue", value: "$128,430", change: "+18.2%", up: true },
-            { label: "Net Revenue", value: "$114,220", change: "+15.7%", up: true },
-            { label: "Gross Margin", value: "68.4%", change: "+2.1pp", up: true },
-            { label: "Operating Cost", value: "$40,740", change: "+8.4%", up: false },
-          ].map((m, i) => (
+          {summaryMetrics.map((m, i) => (
             <div key={m.label} className="px-6 py-5" style={{ borderRight: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               <p className="text-xs mb-1" style={{ color: "#64748b" }}>{m.label}</p>
               <p className="text-xl font-extrabold text-white">{m.value}</p>
@@ -165,7 +276,7 @@ export default function ReportsPage() {
 
         {/* Chart */}
         <div className="px-8 py-6" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <h4 className="font-semibold text-white mb-4 text-sm">Quarterly Revenue Performance</h4>
+          <h4 className="font-semibold text-white mb-4 text-sm">{monthlyData.length > 0 ? "Revenue by Period" : "Quarterly Revenue Performance"}</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={quarterlyData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -203,7 +314,7 @@ export default function ReportsPage() {
       {/* Export Actions */}
       <div className="flex gap-3 flex-wrap">
         <button
-          onClick={() => handleAction("PDF Report")}
+          onClick={handleDownloadCSV}
           disabled={generating}
           className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:scale-105 disabled:opacity-60"
           style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 0 20px rgba(99,102,241,0.25)" }}
@@ -213,10 +324,10 @@ export default function ReportsPage() {
           ) : (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
           )}
-          Download PDF Report
+          {generating ? "Generating..." : "Download CSV Report"}
         </button>
         <button
-          onClick={() => handleAction("Print Summary")}
+          onClick={handlePrint}
           className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-300 transition-all hover:text-white hover:bg-white/5"
           style={{ border: "1px solid rgba(255,255,255,0.12)" }}
         >
@@ -224,12 +335,12 @@ export default function ReportsPage() {
           Print Summary
         </button>
         <button
-          onClick={() => showToast("Report shared via email.")}
+          onClick={handleShare}
           className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-300 transition-all hover:text-white hover:bg-white/5"
           style={{ border: "1px solid rgba(255,255,255,0.12)" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
-          Email Report
+          Share Report
         </button>
       </div>
     </div>

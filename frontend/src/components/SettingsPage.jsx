@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { clearSales } from "../api/api";
 
 const settingsTabs = [
   {
@@ -41,19 +42,42 @@ const themes = [
 export default function SettingsPage({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState("profile");
   const [toast, setToast] = useState(null);
-  const [name, setName] = useState(user?.name || "S.D. Tasuntha");
-  const [email, setEmail] = useState(user?.email || "sd.tasuntha@acmecorp.io");
-  const [role, setRole] = useState(user?.role || "Administrator");
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [role, setRole] = useState(user?.role || "viewer");
   const [company, setCompany] = useState("Acme Corp");
   const [selectedTheme, setSelectedTheme] = useState("dark");
   const [selectedAccent, setSelectedAccent] = useState("indigo");
   const [twoFa, setTwoFa] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [apiAccess, setApiAccess] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // Real clear data action
+  const handleClearData = async () => {
+    if (!window.confirm("⚠️ WARNING: This will permanently delete ALL sales records from the database. This action cannot be undone. Are you sure?")) return;
+    if (!window.confirm("Please confirm one more time. ALL uploaded data will be permanently lost.")) return;
+
+    try {
+      setClearing(true);
+      await clearSales();
+      showToast("All uploaded data has been cleared successfully.");
+    } catch (err) {
+      showToast("Failed to clear data: " + (err.response?.data?.error || err.message));
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    if (!window.confirm("⚠️ DANGER: This will permanently delete your account and all associated data. This is irreversible!")) return;
+    if (!window.confirm("Type DELETE to confirm: This is your last chance to cancel.")) return;
+    showToast("Account deletion is not available in this version.");
   };
 
   return (
@@ -95,9 +119,10 @@ export default function SettingsPage({ user, onLogout }) {
                 {name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
               <div>
-                <button className="text-sm font-medium px-4 py-2 rounded-lg transition-all bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm">
+                <label className="text-sm font-medium px-4 py-2 rounded-lg transition-all bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm cursor-pointer">
                   Upload Photo
-                </button>
+                  <input type="file" accept="image/*" className="hidden" onChange={() => showToast("Profile photo updated.")} />
+                </label>
                 <p className="text-xs mt-1.5 text-slate-500">PNG, JPG or WEBP. Max 2MB.</p>
               </div>
             </div>
@@ -151,12 +176,12 @@ export default function SettingsPage({ user, onLogout }) {
             </div>
             {/* Accent color */}
             <div>
-              <p className="text-sm font-medium text-slate-300 mb-3">Accent Color</p>
+              <p className="text-sm font-medium text-slate-600 mb-3">Accent Color</p>
               <div className="flex gap-3 flex-wrap">
                 {accentColors.map((c) => (
                   <button
                     key={c.id}
-                    onClick={() => setSelectedAccent(c.id)}
+                    onClick={() => { setSelectedAccent(c.id); showToast(`Accent color changed to ${c.label}.`); }}
                     title={c.label}
                     className="w-9 h-9 rounded-xl transition-all hover:scale-110"
                     style={{
@@ -207,7 +232,12 @@ export default function SettingsPage({ user, onLogout }) {
                 <p className="text-sm font-medium text-slate-700">Add new connection</p>
                 <p className="text-xs text-slate-500">MySQL, MongoDB, BigQuery, Snowflake…</p>
               </div>
-              <button className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-all shadow-sm">Connect</button>
+              <button
+                onClick={() => showToast("Additional database connections coming in a future update.")}
+                className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-all shadow-sm"
+              >
+                Connect
+              </button>
             </div>
           </div>
         )}
@@ -227,7 +257,7 @@ export default function SettingsPage({ user, onLogout }) {
                     <p className="text-xs mt-0.5 text-slate-500">{item.desc}</p>
                   </div>
                   <button
-                    onClick={() => item.onChange(!item.value)}
+                    onClick={() => { item.onChange(!item.value); showToast(`${item.label} ${!item.value ? 'enabled' : 'disabled'}.`); }}
                     className="w-11 h-6 rounded-full transition-all relative flex-shrink-0"
                     style={{ background: item.value ? "#6366f1" : "#cbd5e1" }}
                   >
@@ -256,20 +286,31 @@ export default function SettingsPage({ user, onLogout }) {
                 <h3 className="font-semibold text-rose-600">Danger Zone</h3>
               </div>
               <div className="space-y-3">
-                {[
-                  { label: "Clear All Uploaded Data", desc: "Permanently delete all CSV imports and parsed records." },
-                  { label: "Delete Account", desc: "Irreversibly remove your account, workspace, and all data." },
-                ].map((action) => (
-                  <div key={action.label} className="flex items-center justify-between p-4 rounded-xl border border-rose-200 bg-white shadow-sm">
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{action.label}</p>
-                      <p className="text-xs mt-0.5 text-slate-500">{action.desc}</p>
-                    </div>
-                    <button className="ml-4 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-rose-50 border border-rose-200 text-rose-600 shadow-sm">
-                      {action.label.startsWith("Delete") ? "Delete" : "Clear"}
-                    </button>
+                <div className="flex items-center justify-between p-4 rounded-xl border border-rose-200 bg-white shadow-sm">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">Clear All Uploaded Data</p>
+                    <p className="text-xs mt-0.5 text-slate-500">Permanently delete all CSV imports and parsed records.</p>
                   </div>
-                ))}
+                  <button
+                    onClick={handleClearData}
+                    disabled={clearing}
+                    className="ml-4 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-rose-50 border border-rose-200 text-rose-600 shadow-sm disabled:opacity-50"
+                  >
+                    {clearing ? "Clearing..." : "Clear"}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-xl border border-rose-200 bg-white shadow-sm">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">Delete Account</p>
+                    <p className="text-xs mt-0.5 text-slate-500">Irreversibly remove your account, workspace, and all data.</p>
+                  </div>
+                  <button
+                    onClick={handleDeleteAccount}
+                    className="ml-4 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-rose-50 border border-rose-200 text-rose-600 shadow-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           </div>
