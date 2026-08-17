@@ -7,7 +7,7 @@ const { authenticateUser, restrictTo } = require('../middleware/authMiddleware')
 router.get('/recent', authenticateUser, salesController.getRecentTransactions);
 
 // Sales record management
-router.get('/', authenticateUser, restrictTo('admin', 'manager'), salesController.getSales);
+router.get('/', authenticateUser, salesController.getSales);
 router.delete('/:id', authenticateUser, restrictTo('admin'), salesController.deleteSale);
 router.delete('/', authenticateUser, restrictTo('admin'), salesController.clearSales);
 

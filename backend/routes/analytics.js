@@ -8,8 +8,8 @@ router.get('/kpi', authenticateUser, analyticsController.getKPIs);
 router.get('/monthly-trend', authenticateUser, analyticsController.getMonthlyTrend);
 
 // Restricted Analytics (Admin and Manager only)
-router.get('/regional-sales', authenticateUser, restrictTo('admin', 'manager'), analyticsController.getRegionalSales);
-router.get('/category-sales', authenticateUser, restrictTo('admin', 'manager'), analyticsController.getCategorySales);
-router.get('/top-products', authenticateUser, restrictTo('admin', 'manager'), analyticsController.getTopProducts);
+router.get('/regional-sales', authenticateUser, analyticsController.getRegionalSales);
+router.get('/category-sales', authenticateUser, analyticsController.getCategorySales);
+router.get('/top-products', authenticateUser, analyticsController.getTopProducts);
 
 module.exports = router;

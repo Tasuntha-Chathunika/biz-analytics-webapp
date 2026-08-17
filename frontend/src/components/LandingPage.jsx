@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import ThreeBackground from "./ThreeBackground";
+import Navbar3DLogo from "./Navbar3DLogo";
 
 const stats = [
   { value: "10,000+", label: "Reports Generated" },
@@ -105,9 +106,7 @@ export default function LandingPage() {
         }}
       />
 
-import Navbar3DLogo from "./Navbar3DLogo";
 
-// ... existing code in LandingPage ...
       {/* ── Navbar ───────────────────────────────────────── */}
       <motion.nav
         initial={{ y: -100 }}
