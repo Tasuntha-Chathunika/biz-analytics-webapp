@@ -46,6 +46,17 @@ export default function AuthPage({ onAuthSuccess }) {
       <div className="absolute top-1/4 left-1/5 w-72 h-72 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
       <div className="absolute bottom-1/4 right-1/5 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #8b5cf6, transparent)" }} />
 
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 z-10 flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors bg-white/5 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 shadow-lg backdrop-blur-sm"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Home
+      </button>
       <div className="w-full max-w-md relative">
         {/* Brand */}
         <div className="text-center mb-8">
