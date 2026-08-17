@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TopBar = ({ user, onLogout, activeSubTab, onSubTabChange }) => {
+const TopBar = ({ user, onLogout, activeSubTab }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -34,6 +34,12 @@ const TopBar = ({ user, onLogout, activeSubTab, onSubTabChange }) => {
     }
   };
 
+  const handleTabClick = (tab) => {
+    if (tab === 'Overview') navigate('/dashboard/analytics');
+    else if (tab === 'Team') navigate('/dashboard/team');
+    else if (tab === 'Integrations') navigate('/dashboard/integrations');
+  };
+
   return (
     <div className="topbar">
       {/* Search */}
@@ -49,18 +55,20 @@ const TopBar = ({ user, onLogout, activeSubTab, onSubTabChange }) => {
         />
       </div>
 
-      {/* Tabs */}
-      <div className="topbar-tabs">
-        {['Overview', 'Team', 'Integrations'].map(tab => (
-          <button
-            key={tab}
-            className={`topbar-tab ${activeSubTab === tab ? 'active' : ''}`}
-            onClick={() => onSubTabChange(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      {/* Tabs - Only show on Overview/Team/Integrations pages */}
+      {activeSubTab && (
+        <div className="topbar-tabs">
+          {['Overview', 'Team', 'Integrations'].map(tab => (
+            <button
+              key={tab}
+              className={`topbar-tab ${activeSubTab === tab ? 'active' : ''}`}
+              onClick={() => handleTabClick(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="topbar-spacer"></div>
 

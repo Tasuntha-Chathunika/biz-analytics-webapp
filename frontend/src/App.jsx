@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import UploadDashboard from './components/UploadDashboard';
@@ -9,6 +9,8 @@ import AuthPage from './components/AuthPage';
 import ActivityPage from './components/ActivityPage';
 import ReportsPage from './components/ReportsPage';
 import SettingsPage from './components/SettingsPage';
+import TeamPage from './components/TeamPage';
+import IntegrationsPage from './components/IntegrationsPage';
 import { getKPIs, getProfile } from './api/api';
 
 import LandingPage from './components/LandingPage';
@@ -17,10 +19,10 @@ function App() {
   const [user, setUser] = useState(null);
   const [checkingUser, setCheckingUser] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState('Overview');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   const navigate = useNavigate();
+  const location = useLocation();
 
   // 1. Check user authentication
   useEffect(() => {
@@ -83,6 +85,18 @@ function App() {
     );
   }
 
+  // Determine active TopBar sub-tab based on current route
+  let activeSubTab = 'Overview';
+  if (location.pathname.includes('/team')) {
+    activeSubTab = 'Team';
+  } else if (location.pathname.includes('/integrations')) {
+    activeSubTab = 'Integrations';
+  } else if (location.pathname.includes('/analytics') || location.pathname === '/dashboard') {
+    activeSubTab = 'Overview';
+  } else {
+    activeSubTab = ''; // Hide tab selection for other pages like Settings, Reports
+  }
+
   return (
     <Routes>
       <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
@@ -94,7 +108,7 @@ function App() {
           <div className="app-layout">
             <Sidebar user={user} />
             <div className="main-area">
-              <TopBar user={user} onLogout={handleLogout} activeSubTab={activeSubTab} onSubTabChange={setActiveSubTab} />
+              <TopBar user={user} onLogout={handleLogout} activeSubTab={activeSubTab} />
               <main className="main-content">
                 <Routes>
                    <Route path="/" element={
@@ -103,6 +117,9 @@ function App() {
                        : <AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />
                    } />
                    <Route path="analytics" element={<AnalyticsDashboard refreshTrigger={refreshTrigger} userRole={user.role} />} />
+                   
+                   <Route path="team" element={<TeamPage userRole={user.role} />} />
+                   <Route path="integrations" element={<IntegrationsPage />} />
                    
                    {['admin', 'manager'].includes(user.role) && (
                      <Route path="ledger" element={<RecordsTable onDataChanged={handleDataChanged} userRole={user.role} />} />
