@@ -95,21 +95,7 @@ export default function LandingPage() {
     <div className="min-h-screen overflow-x-hidden relative bg-[#FAFAFA] selection:bg-indigo-500/20 selection:text-indigo-900 font-['Inter',sans-serif]">
       <ThreeBackground />
       
-      {/* ── Custom Mouse Trail ── */}
-      <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-indigo-400/50 pointer-events-none z-[100] hidden md:block"
-        style={{
-          x: useTransform(smoothMouseX, v => v - 16),
-          y: useTransform(smoothMouseY, v => v - 16)
-        }}
-      />
-      <motion.div
-        className="fixed top-0 left-0 w-2 h-2 rounded-full bg-indigo-600 pointer-events-none z-[100] hidden md:block"
-        style={{
-          x: useTransform(mouseX, v => v - 4),
-          y: useTransform(mouseY, v => v - 4)
-        }}
-      />
+
 
       {/* ── Spotlight Cursor Effect ── */}
       <div 
@@ -119,35 +105,42 @@ export default function LandingPage() {
         }}
       />
 
+import Navbar3DLogo from "./Navbar3DLogo";
+
+// ... existing code in LandingPage ...
       {/* ── Navbar ───────────────────────────────────────── */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="sticky top-0 z-50 px-6 py-4 transition-all duration-300"
-        style={{ background: "rgba(250,250,250,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(0,0,0,0.04)" }}
+        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 transition-all duration-300 w-[96%] max-w-7xl rounded-full"
+        style={{ 
+          background: "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.4))", 
+          backdropFilter: "blur(24px)", 
+          WebkitBackdropFilter: "blur(24px)", 
+          border: "1px solid rgba(255,255,255,0.8)",
+          boxShadow: "0 10px 40px -10px rgba(99,102,241,0.2)"
+        }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-10">
-            <div className="flex items-center gap-3 cursor-pointer group">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.08)] bg-slate-900 group-hover:scale-105 transition-transform duration-300">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" /></svg>
-              </div>
-              <span className="font-bold text-slate-900 text-[1.1rem] tracking-tight">BizAnalytics</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-8 lg:gap-12">
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <Navbar3DLogo />
+              <span className="font-[900] text-[1.3rem] tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 drop-shadow-sm">BizAnalytics</span>
             </div>
 
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-6 lg:gap-8">
               {["Product", "Solutions", "Developers", "Resources", "Pricing"].map((item) => (
-                <a key={item} href="#features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }} className="text-[14px] font-medium text-slate-600 hover:text-indigo-600 transition-colors">{item}</a>
+                <a key={item} href="#features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }} className="text-[14px] font-semibold text-slate-700 hover:text-indigo-600 transition-colors relative after:absolute after:-bottom-1.5 after:left-0 after:w-0 after:h-0.5 after:bg-indigo-600 hover:after:w-full after:transition-all after:duration-300">{item}</a>
               ))}
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link to="/auth" className="text-[14px] font-medium text-slate-600 hover:text-indigo-600 transition-colors hidden sm:block mr-2">Sign in</Link>
+            <Link to="/auth" className="text-[14px] font-semibold text-slate-700 hover:text-indigo-600 transition-colors hidden sm:block mr-2">Sign in</Link>
             <Link
               to="/auth"
-              className="text-[14px] font-medium text-white px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-105 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] animate-gradient bg-[length:200%_100%]"
+              className="text-[14px] font-bold text-white px-6 py-2.5 rounded-full transition-all duration-300 hover:scale-105 shadow-[0_4px_14px_0_rgba(99,102,241,0.39)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.23)] bg-gradient-to-r from-indigo-600 to-purple-600 border border-indigo-500/50"
             >
               Start for free
             </Link>
